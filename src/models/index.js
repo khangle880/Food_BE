@@ -1,0 +1,17 @@
+module.exports.Token = require('./token.model');
+module.exports.User = require('./user.model');
+module.exports.Comment = require('./comment.model');
+module.exports.Cuisine = require('./cuisine.model');
+module.exports.Ingredient = require('./ingredient.model');
+module.exports.MenuType = require('./menuType.model');
+module.exports.Post = require('./post.model');
+module.exports.Product = require('./product.model');
+module.exports.ProductType = require('./productType.model');
+module.exports.Recipe = require('./recipe.model');
+module.exports.SpecialGoal = require('./specialGoal.model');
+module.exports.Unit = require('./unit.model');
+module.exports.RecipeLike = require('./recipeLike.model');
+module.exports.RecipeCook = require('./recipeCook.model');
+module.exports.Rating = require('./rating.model');
+module.exports.CommentReaction = require('./commentReaction.model');
+module.exports.PostReaction = require('./postReaction.model');
