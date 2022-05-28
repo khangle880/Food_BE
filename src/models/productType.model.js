@@ -3,7 +3,7 @@ const { toJSON, paginate } = require('./plugins');
 
 const productTypeSchema = mongoose.Schema(
   {
-    name: { type: String, required: true },
+    names: { type: [{ type: String }], required: true },
   },
   { timestamps: true }
 );

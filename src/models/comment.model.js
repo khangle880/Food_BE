@@ -11,6 +11,7 @@ const commentSchema = mongoose.Schema(
     parentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Comment',
+      transform: (v) => (v == null ? '' : v),
     },
     postId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -19,10 +20,11 @@ const commentSchema = mongoose.Schema(
     },
     photoUrls: {
       type: [{ type: String }],
+      default: [],
     },
-    videoUrl: { type: String },
-    content: { type: String },
-    deletedAt: { type: Date },
+    videoUrl: { type: String, transform: (v) => (v == null ? '' : v) },
+    content: { type: String, transform: (v) => (v == null ? '' : v) },
+    deletedAt: { type: Date, transform: (v) => (v == null ? '' : v) },
   },
   { timestamps: true }
 );

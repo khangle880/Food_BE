@@ -11,8 +11,9 @@ const postSchema = mongoose.Schema(
     },
     photoUrls: {
       type: [{ type: String }],
+      default: [],
     },
-    videoUrl: { type: String },
+    videoUrl: { type: String, transform: (v) => (v == null ? '' : v) },
     viewRange: {
       type: String,
       enum: {
@@ -21,10 +22,10 @@ const postSchema = mongoose.Schema(
       },
       required: true,
     },
-    backgroundColor: { type: String },
-    content: { type: String },
-    tags: { type: [{ type: String }] },
-    deletedAt: { type: Date },
+    backgroundColor: { type: String, transform: (v) => (v == null ? '' : v) },
+    content: { type: String, transform: (v) => (v == null ? '' : v) },
+    tags: { type: [{ type: String }], default: [] },
+    deletedAt: { type: Date, transform: (v) => (v == null ? '' : v) },
   },
   { timestamps: true }
 );
