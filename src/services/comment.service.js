@@ -1,9 +1,65 @@
 const httpStatus = require('http-status');
+const mongoose = require('mongoose');
 const { Comment, CommentReaction } = require('../models');
 const ApiError = require('../utils/ApiError');
 
-const create = async (body) => {
-  return Comment.create(body);
+const lookupCommentReactions = [
+  {
+    $lookup: {
+      from: 'commentreactions',
+      localField: '_id',
+      foreignField: 'commentId',
+      as: 'commentReactions',
+    },
+  },
+  { $unwind: { path: '$commentReactions', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'commentReactions.userId',
+      foreignField: '_id',
+      as: 'commentReactions.user',
+    },
+  },
+  { $unwind: { path: '$commentReactions.user', preserveNullAndEmptyArrays: true } },
+  {
+    $project: {
+      'commentReactions.user': 1,
+      'commentReactions.type': 1,
+    },
+  },
+  {
+    $project: {
+      'commentReactions.user.__v': 0,
+      'commentReactions.user._id': 0,
+      'commentReactions.user.password': 0,
+      'commentReactions.user.role': 0,
+    },
+  },
+  {
+    $group: {
+      _id: '$_id',
+      results: {
+        $push: '$commentReactions',
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      results: {
+        $cond: {
+          if: { $eq: ['$results', [{}]] },
+          then: [],
+          else: '$results',
+        },
+      },
+    },
+  },
+];
+
+const create = async (creatorId, body) => {
+  return Comment.create({ creatorId, ...body });
 };
 
 const query = async (filter, options) => {
@@ -39,9 +95,9 @@ const react = async (userId, commentId, type) => {
   if (!comment) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Comment not found');
   }
-  const item = await CommentReaction.findOne({ commentId, userId });
+  let item = await CommentReaction.findOne({ commentId, userId });
   if (!item) {
-    await CommentReaction.create({ userId, commentId, type });
+    item = await CommentReaction.create({ userId, commentId, type });
   } else {
     Object.assign(item, { type });
     await item.save();
@@ -61,6 +117,11 @@ const deleteReaction = async (userId, commentId) => {
   return item;
 };
 
+const getCommentReactions = async (id) => {
+  const items = await Comment.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookupCommentReactions]);
+  return items.at(0);
+};
+
 module.exports = {
   create,
   getById,
@@ -69,4 +130,5 @@ module.exports = {
   query,
   react,
   deleteReaction,
+  getCommentReactions,
 };

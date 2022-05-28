@@ -8,7 +8,7 @@ const router = express.Router();
 
 router
   .route('/')
-  .post(auth(), validate(validation.create), controller.create)
+  .post(auth('admin'), validate(validation.create), controller.create)
   .get(auth('admin'), validate(validation.getItems), controller.getItems);
 
 router
@@ -18,5 +18,8 @@ router
   .delete(auth(), validate(validation.deleteById), controller.deleteById);
 
 router.route('/:id/follow').post(auth(), validate(validation.follow), controller.follow);
-router.route('/:id/unfollow').post(auth(), validate(validation.unFollow), controller.unFollow);
+router.route('/:id/unfollow').delete(auth(), validate(validation.unFollow), controller.unFollow);
+
+router.route('/:id/liked-recipes').get(auth(), validate(validation.getLikedRecipes), controller.getLikedRecipes);
+
 module.exports = router;

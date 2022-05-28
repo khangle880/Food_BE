@@ -10,7 +10,6 @@ const commentSchema = mongoose.Schema(
     },
     parentId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
       ref: 'Comment',
     },
     postId: {

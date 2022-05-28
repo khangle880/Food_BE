@@ -12,39 +12,6 @@ const lookup = [
       as: 'likedUsers',
     },
   },
-  { $unwind: { path: '$likedUsers', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'users',
-      localField: 'likedUsers.userId',
-      foreignField: '_id',
-      as: 'likedUsers',
-    },
-  },
-  { $unwind: { path: '$likedUsers', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'likedUsers.id': '$likedUsers._id',
-    },
-  },
-  {
-    $project: {
-      'likedUsers.__v': 0,
-      'likedUsers._id': 0,
-      'likedUsers.password': 0,
-      'likedUsers.role': 0,
-    },
-  },
-  {
-    $group: {
-      _id: '$_id',
-      likedUsers: {
-        $push: '$likedUsers',
-      },
-      doc: { $first: '$$ROOT' },
-    },
-  },
-  { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { likedUsers: '$likedUsers' }] } } },
   {
     $lookup: {
       from: 'recipecooks',
@@ -53,39 +20,6 @@ const lookup = [
       as: 'cookedUsers',
     },
   },
-  { $unwind: { path: '$cookedUsers', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'users',
-      localField: 'cookedUsers.userId',
-      foreignField: '_id',
-      as: 'cookedUsers',
-    },
-  },
-  { $unwind: { path: '$cookedUsers', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'cookedUsers.id': '$cookedUsers._id',
-    },
-  },
-  {
-    $project: {
-      'cookedUsers.__v': 0,
-      'cookedUsers._id': 0,
-      'cookedUsers.password': 0,
-      'cookedUsers.role': 0,
-    },
-  },
-  {
-    $group: {
-      _id: '$_id',
-      cookedUsers: {
-        $push: '$cookedUsers',
-      },
-      doc: { $first: '$$ROOT' },
-    },
-  },
-  { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { cookedUsers: '$cookedUsers' }] } } },
   {
     $lookup: {
       from: 'ratings',
@@ -94,39 +28,6 @@ const lookup = [
       as: 'ratings',
     },
   },
-  { $unwind: { path: '$ratings', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'users',
-      localField: 'ratings.userId',
-      foreignField: '_id',
-      as: 'ratings',
-    },
-  },
-  { $unwind: { path: '$ratings', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'ratings.id': '$ratings._id',
-    },
-  },
-  {
-    $project: {
-      'ratings.__v': 0,
-      'ratings._id': 0,
-      'ratings.password': 0,
-      'ratings.role': 0,
-    },
-  },
-  {
-    $group: {
-      _id: '$_id',
-      ratings: {
-        $push: '$ratings',
-      },
-      doc: { $first: '$$ROOT' },
-    },
-  },
-  { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { ratings: '$ratings' }] } } },
   {
     $lookup: {
       from: 'specialgoals',
@@ -209,7 +110,169 @@ const lookup = [
     },
   },
   {
-    $project: { _id: 0, __v: 0 },
+    $project: { _id: 0, __v: 0, likedUsers: 0, cookedUsers: 0, ratings: 0 },
+  },
+];
+
+const lookupLikedUsers = [
+  {
+    $lookup: {
+      from: 'recipelikes',
+      localField: '_id',
+      foreignField: 'recipeId',
+      as: 'likedUsers',
+    },
+  },
+  { $unwind: { path: '$likedUsers', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'likedUsers.userId',
+      foreignField: '_id',
+      as: 'likedUsers',
+    },
+  },
+  { $unwind: { path: '$likedUsers', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      'likedUsers.id': '$likedUsers._id',
+    },
+  },
+  {
+    $project: {
+      'likedUsers.__v': 0,
+      'likedUsers._id': 0,
+      'likedUsers.password': 0,
+      'likedUsers.role': 0,
+    },
+  },
+  {
+    $group: {
+      _id: '$_id',
+      results: {
+        $push: '$likedUsers',
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      results: {
+        $cond: {
+          if: { $eq: ['$results', [{}]] },
+          then: [],
+          else: '$results',
+        },
+      },
+    },
+  },
+];
+
+const lookupCookedUsers = [
+  {
+    $lookup: {
+      from: 'recipecooks',
+      localField: '_id',
+      foreignField: 'recipeId',
+      as: 'cookedUsers',
+    },
+  },
+  { $unwind: { path: '$cookedUsers', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'cookedUsers.userId',
+      foreignField: '_id',
+      as: 'cookedUsers',
+    },
+  },
+  { $unwind: { path: '$cookedUsers', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      'cookedUsers.id': '$cookedUsers._id',
+    },
+  },
+  {
+    $project: {
+      'cookedUsers.__v': 0,
+      'cookedUsers._id': 0,
+      'cookedUsers.password': 0,
+      'cookedUsers.role': 0,
+    },
+  },
+  {
+    $group: {
+      _id: '$_id',
+      results: {
+        $push: '$cookdUsers',
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      results: {
+        $cond: {
+          if: { $eq: ['$results', [{}]] },
+          then: [],
+          else: '$results',
+        },
+      },
+    },
+  },
+];
+
+const lookupRatingUsers = [
+  {
+    $lookup: {
+      from: 'ratings',
+      localField: '_id',
+      foreignField: 'recipeId',
+      as: 'ratings',
+    },
+  },
+  { $unwind: { path: '$ratings', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'ratings.userId',
+      foreignField: '_id',
+      as: 'ratings',
+    },
+  },
+  { $unwind: { path: '$ratings', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      'ratings.id': '$ratings._id',
+    },
+  },
+  {
+    $project: {
+      'ratings.__v': 0,
+      'ratings._id': 0,
+      'ratings.password': 0,
+      'ratings.role': 0,
+    },
+  },
+  {
+    $group: {
+      _id: '$_id',
+      results: {
+        $push: '$ratings',
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      results: {
+        $cond: {
+          if: { $eq: ['$results', [{}]] },
+          then: [],
+          else: '$results',
+        },
+      },
+    },
   },
 ];
 
@@ -260,9 +323,9 @@ const likeRecipe = async (userId, recipeId) => {
   if (!recipe) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
-  const item = await RecipeLike.findOne({ userId, recipeId });
+  let item = await RecipeLike.findOne({ userId, recipeId });
   if (!item) {
-    await RecipeLike.create({ userId, recipeId });
+    item = await RecipeLike.create({ userId, recipeId });
   }
   return item;
 };
@@ -275,6 +338,8 @@ const dislikeRecipe = async (userId, recipeId) => {
   const item = await RecipeLike.findOne({ userId, recipeId });
   if (item) {
     await item.remove();
+  } else {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Recipe like not found');
   }
   return item;
 };
@@ -284,9 +349,9 @@ const markCook = async (userId, recipeId) => {
   if (!recipe) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
-  const item = await RecipeCook.findOne({ userId, recipeId });
+  let item = await RecipeCook.findOne({ userId, recipeId });
   if (!item) {
-    await RecipeCook.create({ userId, recipeId });
+    item = await RecipeCook.create({ userId, recipeId });
   }
   return item;
 };
@@ -299,18 +364,20 @@ const unmarkCook = async (userId, recipeId) => {
   const item = await RecipeCook.findOne({ userId, recipeId });
   if (item) {
     await item.remove();
+  } else {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Recipe cook not found');
   }
   return item;
 };
 
-const rateRecipe = async (userId, recipeId, point) => {
+const vote = async (userId, recipeId, point) => {
   const recipe = await getById(recipeId);
   if (!recipe) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
-  const item = await Rating.findOne({ userId, recipeId });
+  let item = await Rating.findOne({ userId, recipeId });
   if (!item) {
-    await Rating.create({ userId, recipeId, point });
+    item = await Rating.create({ userId, recipeId, point });
   } else {
     Object.assign(item, { point });
     await item.save();
@@ -318,7 +385,7 @@ const rateRecipe = async (userId, recipeId, point) => {
   return item;
 };
 
-const deleteRating = async (userId, recipeId) => {
+const unvote = async (userId, recipeId) => {
   const recipe = await getById(recipeId);
   if (!recipe) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
@@ -326,6 +393,8 @@ const deleteRating = async (userId, recipeId) => {
   const item = await Rating.findOne({ userId, recipeId });
   if (item) {
     await item.remove();
+  } else {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Recipe rating not found');
   }
   return item;
 };
@@ -355,6 +424,21 @@ const search = async (text, options) => {
   return items;
 };
 
+const getLikedUsers = async (id) => {
+  const items = await Recipe.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookupLikedUsers]);
+  return items.at(0);
+};
+
+const getCookedUsers = async (id) => {
+  const items = await Recipe.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookupCookedUsers]);
+  return items.at(0);
+};
+
+const getRatingUsers = async (id) => {
+  const items = await Recipe.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookupRatingUsers]);
+  return items.at(0);
+};
+
 module.exports = {
   create,
   getById,
@@ -365,7 +449,10 @@ module.exports = {
   dislikeRecipe,
   markCook,
   unmarkCook,
-  rateRecipe,
-  deleteRating,
+  vote,
+  unvote,
   search,
+  getLikedUsers,
+  getCookedUsers,
+  getRatingUsers,
 };

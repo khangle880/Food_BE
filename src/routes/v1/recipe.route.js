@@ -18,12 +18,14 @@ router
   .delete(auth(), validate(validation.deleteById), controller.deleteById);
 
 router.route('/:id/like').post(auth(), validate(validation.like), controller.likeRecipe);
-router.route('/:id/dislike').post(auth(), validate(validation.dislike), controller.dislikeRecipe);
+router.route('/:id/dislike').delete(auth(), validate(validation.dislike), controller.dislikeRecipe);
 router.route('/:id/mark-cook').post(auth(), validate(validation.markCook), controller.markCook);
-router.route('/:id/ummark-cook').post(auth(), validate(validation.unmarkCook), controller.unmarkCook);
-router
-  .route('/:id/rate')
-  .post(auth(), validate(validation.rate), controller.rateRecipe)
-  .delete(auth(), validate(validation.deleteRating), controller.deleteRating);
+router.route('/:id/unmark-cook').delete(auth(), validate(validation.unmarkCook), controller.unmarkCook);
+router.route('/:id/vote').post(auth(), validate(validation.vote), controller.vote);
+router.route('/:id/unvote').delete(auth(), validate(validation.unvote), controller.unvote);
+
+router.route('/:id/liked-users').get(auth(), validate(validation.getLikedUsers), controller.getLikedUsers);
+router.route('/:id/cooked-users').get(auth(), validate(validation.getCookedUsers), controller.getCookedUsers);
+router.route('/:id/rating-users').get(auth(), validate(validation.getRatingUsers), controller.getRatingUsers);
 
 module.exports = router;

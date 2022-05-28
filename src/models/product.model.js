@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 const { toJSON, paginate } = require('./plugins');
 
 const productSchema = mongoose.Schema(
@@ -30,6 +31,7 @@ const productSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 productSchema.plugin(toJSON);
 productSchema.plugin(paginate);
+productSchema.plugin(aggregatePaginate);
 
 productSchema.index({
   description: 'text',

@@ -5,7 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const { commentService } = require('../services');
 
 const create = catchAsync(async (req, res) => {
-  const item = await commentService.create(req.body);
+  const item = await commentService.create(req.user.id, req.body);
   res.status(httpStatus.CREATED).send(item);
 });
 
@@ -44,6 +44,11 @@ const deleteReaction = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send('Delete reaction Successfully');
 });
 
+const getCommentReactions = catchAsync(async (req, res) => {
+  const items = await commentService.getCommentReactions(req.params.id);
+  res.send(items);
+});
+
 module.exports = {
   create,
   getItems,
@@ -52,4 +57,5 @@ module.exports = {
   deleteById,
   react,
   deleteReaction,
+  getCommentReactions,
 };

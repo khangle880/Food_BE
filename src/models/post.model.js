@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 const { toJSON, paginate } = require('./plugins');
 
-const postRecipe = mongoose.Schema(
+const postSchema = mongoose.Schema(
   {
     creatorId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -29,10 +30,11 @@ const postRecipe = mongoose.Schema(
 );
 
 // add plugin that converts mongoose to json
-postRecipe.plugin(toJSON);
-postRecipe.plugin(paginate);
+postSchema.plugin(toJSON);
+postSchema.plugin(paginate);
+postSchema.plugin(aggregatePaginate);
 
-postRecipe.index({
+postSchema.index({
   content: 'text',
   tags: 'text',
 });
@@ -40,6 +42,6 @@ postRecipe.index({
 /**
  * @typedef Post
  */
-const Post = mongoose.model('Post', postRecipe);
+const Post = mongoose.model('Post', postSchema);
 
 module.exports = Post;

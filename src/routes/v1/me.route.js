@@ -12,6 +12,7 @@ router
   .put(auth(), validate(validation.updateMe), controller.updateMe)
   .delete(auth(), controller.deleteMe);
 
-router.route('/change-password').post(auth(), validate(validation.changePassword), controller.changePassword);
+router.route('/liked-recipes').get(auth(), controller.getLikedRecipes);
+router.route('/change-password').put(auth(), validate(validation.changePassword), controller.changePassword);
 
 module.exports = router;

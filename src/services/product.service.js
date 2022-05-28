@@ -2,8 +2,8 @@ const httpStatus = require('http-status');
 const { Product } = require('../models');
 const ApiError = require('../utils/ApiError');
 
-const create = async (body) => {
-  return Product.create(body);
+const create = async (creatorId, body) => {
+  return Product.create({ creatorId, ...body });
 };
 
 const query = async (filter, options) => {
@@ -35,7 +35,33 @@ const deleteById = async (id) => {
 };
 
 const search = async (text, options) => {
-  return query({ $text: { $search: text } }, options);
+  const products = Product.aggregate([
+    {
+      $match: {
+        $text: {
+          $search: text,
+        },
+      },
+    },
+    { $addFields: { score: { $meta: 'textScore' }, id: '$_id' } },
+    { $match: { score: { $gt: 0.5 } } },
+    {
+      $project: {
+        __v: 0,
+        _id: 0,
+      },
+    },
+  ]);
+  const items = await Product.aggregatePaginate(products, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
 };
 
 module.exports = {

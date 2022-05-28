@@ -12,7 +12,7 @@ const create = {
       unitId: Joi.string().custom(objectId),
       saleLocations: Joi.array().items(Joi.string()),
     })
-    .or('content', 'photoUrls', 'videoUrl'),
+    .or('photoUrls', 'videoUrl'),
 };
 
 const getItems = {

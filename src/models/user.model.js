@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
 const { toJSON, paginate } = require('./plugins');
@@ -8,9 +9,11 @@ const userSchema = mongoose.Schema(
   {
     followingUsers: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      default: [],
     },
     followerUsers: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+      default: [],
     },
     name: {
       type: String,
@@ -64,6 +67,7 @@ const userSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 userSchema.plugin(toJSON);
 userSchema.plugin(paginate);
+userSchema.plugin(aggregatePaginate);
 
 userSchema.index({
   phone: 'text',

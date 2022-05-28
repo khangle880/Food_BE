@@ -1,7 +1,59 @@
 const httpStatus = require('http-status');
+const mongoose = require('mongoose');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
 
+const lookupLikedRecipes = [
+  {
+    $lookup: {
+      from: 'recipelikes',
+      localField: '_id',
+      foreignField: 'userId',
+      as: 'likedRecipes',
+    },
+  },
+  { $unwind: { path: '$likedRecipes', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'recipes',
+      localField: 'likedRecipes.recipeId',
+      foreignField: '_id',
+      as: 'likedRecipes',
+    },
+  },
+  { $unwind: { path: '$likedRecipes', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      'likedRecipes.id': '$likedRecipes._id',
+    },
+  },
+  {
+    $project: {
+      'likedRecipes.__v': 0,
+      'likedRecipes._id': 0,
+    },
+  },
+  {
+    $group: {
+      _id: '$_id',
+      results: {
+        $push: '$likedRecipes',
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      results: {
+        $cond: {
+          if: { $eq: ['$results', [{}]] },
+          then: [],
+          else: '$results',
+        },
+      },
+    },
+  },
+];
 const create = async (body) => {
   if (await User.isEmailTaken(body.email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
@@ -49,8 +101,9 @@ const follow = async (userId, otherUserId) => {
   if (!otherUser) {
     throw new ApiError(httpStatus.NOT_FOUND, 'This user not exist');
   }
-  const item = await User.findOne({ _id: userId, followingUsers: otherUserId });
+  let item = await User.findOne({ _id: userId, followingUsers: otherUserId });
   if (!item) {
+    item = await getById(userId);
     item.followingUsers.push(otherUserId);
     await item.save();
     otherUser.followerUsers.push(userId);
@@ -60,16 +113,18 @@ const follow = async (userId, otherUserId) => {
 };
 
 const unFollow = async (userId, otherUserId) => {
-  const otherUser = await getById(userId);
+  const otherUser = await getById(otherUserId);
   if (!otherUser) {
     throw new ApiError(httpStatus.NOT_FOUND, 'This user not exist');
   }
   const item = await User.findOne({ _id: userId, followingUsers: otherUserId });
-  if (!item) {
-    item.followingUsers.filter((id) => id !== otherUserId);
+  if (item) {
+    item.followingUsers = item.followingUsers.filter((id) => id.toString() !== otherUserId);
     await item.save();
-    otherUser.followerUsers.filter((id) => id !== userId);
+    otherUser.followerUsers = otherUser.followerUsers.filter((id) => id.toString() !== userId);
     await otherUser.save();
+  } else {
+    throw new ApiError(httpStatus.NOT_FOUND, 'This user not followed yet');
   }
   return item;
 };
@@ -85,7 +140,40 @@ const changePassword = async (user, body) => {
 };
 
 const search = async (text, options) => {
-  return query({ $text: { $search: text } }, options);
+  const users = User.aggregate([
+    {
+      $match: {
+        $text: {
+          $search: text,
+        },
+      },
+    },
+    { $addFields: { score: { $meta: 'textScore' }, id: '$_id' } },
+    { $match: { score: { $gt: 0.5 } } },
+    {
+      $project: {
+        __v: 0,
+        _id: 0,
+        password: 0,
+        role: 0,
+      },
+    },
+  ]);
+  const items = await User.aggregatePaginate(users, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
+};
+
+const getLikedRecipes = async (id) => {
+  const items = await User.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookupLikedRecipes]);
+  return items.at(0);
 };
 
 module.exports = {
@@ -99,4 +187,5 @@ module.exports = {
   unFollow,
   changePassword,
   search,
+  getLikedRecipes,
 };

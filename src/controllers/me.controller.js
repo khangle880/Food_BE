@@ -17,8 +17,13 @@ const deleteMe = catchAsync(async (req, res) => {
 });
 
 const changePassword = catchAsync(async (req, res) => {
-  await userService.changePassword(req.user.id, req.body);
+  await userService.changePassword(req.user, req.body);
   res.status(httpStatus.OK).send('Password Change Successfully');
+});
+
+const getLikedRecipes = catchAsync(async (req, res) => {
+  const items = await userService.getLikedRecipes(req.user.id);
+  res.send(items);
 });
 
 module.exports = {
@@ -26,4 +31,5 @@ module.exports = {
   updateMe,
   deleteMe,
   changePassword,
+  getLikedRecipes,
 };

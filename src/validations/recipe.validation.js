@@ -76,11 +76,17 @@ const unmarkCook = {
   }),
 };
 
-const rate = {
+const vote = {
   params: Joi.object().keys({
     id: Joi.string().required().custom(objectId),
   }),
   body: Joi.object().keys({ point: Joi.number().required() }),
+};
+
+const unvote = {
+  params: Joi.object().keys({
+    id: Joi.string().required().custom(objectId),
+  }),
 };
 
 const deleteRating = {
@@ -117,6 +123,23 @@ const deleteById = {
   }),
 };
 
+const getLikedUsers = {
+  params: Joi.object().keys({
+    id: Joi.string().required().custom(objectId),
+  }),
+};
+
+const getCookedUsers = {
+  params: Joi.object().keys({
+    id: Joi.string().required().custom(objectId),
+  }),
+};
+
+const getRatingUsers = {
+  params: Joi.object().keys({
+    id: Joi.string().required().custom(objectId),
+  }),
+};
 module.exports = {
   create,
   getItems,
@@ -127,6 +150,10 @@ module.exports = {
   dislike,
   markCook,
   unmarkCook,
-  rate,
+  vote,
+  unvote,
   deleteRating,
+  getLikedUsers,
+  getCookedUsers,
+  getRatingUsers,
 };

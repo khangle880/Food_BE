@@ -67,6 +67,12 @@ const deleteById = {
   }),
 };
 
+const getPostReactions = {
+  params: Joi.object().keys({
+    id: Joi.string().required().custom(objectId),
+  }),
+};
+
 module.exports = {
   create,
   getItems,
@@ -75,4 +81,5 @@ module.exports = {
   deleteById,
   react,
   deleteReaction,
+  getPostReactions,
 };

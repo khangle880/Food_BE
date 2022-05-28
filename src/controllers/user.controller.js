@@ -40,8 +40,13 @@ const follow = catchAsync(async (req, res) => {
 });
 
 const unFollow = catchAsync(async (req, res) => {
-  const user = await userService.unmarkCook(req.user.id, req.params.id);
+  const user = await userService.unFollow(req.user.id, req.params.id);
   res.send(user);
+});
+
+const getLikedRecipes = catchAsync(async (req, res) => {
+  const items = await userService.getLikedRecipes(req.params.id);
+  res.send(items);
 });
 
 module.exports = {
@@ -52,4 +57,5 @@ module.exports = {
   deleteById,
   follow,
   unFollow,
+  getLikedRecipes,
 };

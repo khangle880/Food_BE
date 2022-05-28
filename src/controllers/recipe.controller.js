@@ -55,20 +55,29 @@ const unmarkCook = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send('Unmark Successfully');
 });
 
-const rateRecipe = catchAsync(async (req, res) => {
-  const item = await recipeService.rateRecipe(req.user.id, req.params.id, req.body.point);
+const vote = catchAsync(async (req, res) => {
+  const item = await recipeService.vote(req.user.id, req.params.id, req.body.point);
   res.status(httpStatus.CREATED).send(item);
 });
 
-const deleteRating = catchAsync(async (req, res) => {
-  await recipeService.deleteRating(req.user.id, req.params.id);
+const unvote = catchAsync(async (req, res) => {
+  await recipeService.unvote(req.user.id, req.params.id);
   res.status(httpStatus.OK).send('Delete Rating Successfully');
 });
 
-const searchText = catchAsync(async (req, res) => {
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await recipeService.searchText(req.query.text, options);
-  res.send(result);
+const getLikedUsers = catchAsync(async (req, res) => {
+  const items = await recipeService.getLikedUsers(req.params.id);
+  res.send(items);
+});
+
+const getCookedUsers = catchAsync(async (req, res) => {
+  const items = await recipeService.getCookedUsers(req.params.id);
+  res.send(items);
+});
+
+const getRatingUsers = catchAsync(async (req, res) => {
+  const items = await recipeService.getRatingUsers(req.params.id);
+  res.send(items);
 });
 
 module.exports = {
@@ -81,7 +90,9 @@ module.exports = {
   dislikeRecipe,
   markCook,
   unmarkCook,
-  rateRecipe,
-  deleteRating,
-  searchText,
+  vote,
+  unvote,
+  getLikedUsers,
+  getCookedUsers,
+  getRatingUsers,
 };

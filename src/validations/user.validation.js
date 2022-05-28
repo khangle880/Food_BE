@@ -60,6 +60,12 @@ const unFollow = {
   }),
 };
 
+const getLikedRecipes = {
+  params: Joi.object().keys({
+    id: Joi.string().required().custom(objectId),
+  }),
+};
+
 module.exports = {
   create,
   getItems,
@@ -68,4 +74,5 @@ module.exports = {
   deleteById,
   follow,
   unFollow,
+  getLikedRecipes,
 };
