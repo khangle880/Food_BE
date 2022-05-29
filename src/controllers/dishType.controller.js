@@ -2,42 +2,51 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { specialGoalService } = require('../services');
+const { dishTypeService } = require('../services');
 
 const create = catchAsync(async (req, res) => {
-  const item = await specialGoalService.create(req.body);
+  const item = await dishTypeService.create(req.body);
   res.status(httpStatus.CREATED).send(item);
 });
 
 const getItems = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['names']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await specialGoalService.query(filter, options);
+  const result = await dishTypeService.query(filter, options);
   res.send(result);
 });
 
 const getById = catchAsync(async (req, res) => {
-  const item = await specialGoalService.getById(req.params.id);
+  const item = await dishTypeService.getById(req.params.id);
   if (!item) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Special goal not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'Cuisine not found');
   }
   res.send(item);
 });
 
 const updateById = catchAsync(async (req, res) => {
-  const item = await specialGoalService.updateById(req.params.id, req.body);
+  const item = await dishTypeService.updateById(req.params.id, req.body);
   res.send(item);
 });
 
 const deleteById = catchAsync(async (req, res) => {
-  await specialGoalService.deleteById(req.params.id);
+  await dishTypeService.deleteById(req.params.id);
   res.status(httpStatus.OK).send('Delete Successfully');
 });
 
+const spam = catchAsync(async (req, res) => {
+  const data = req.body;
+  const keys = Object.keys(data);
+  keys.forEach(async (key) => {
+    await dishTypeService.create({ names: data[key] });
+  });
+  res.status(httpStatus.OK).send('ok');
+});
 module.exports = {
   create,
   getItems,
   getById,
   updateById,
   deleteById,
+  spam,
 };

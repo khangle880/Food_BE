@@ -10,7 +10,7 @@ const create = catchAsync(async (req, res) => {
 });
 
 const getItems = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name']);
+  const filter = pick(req.query, ['names']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
   const result = await cuisineService.query(filter, options);
   res.send(result);
