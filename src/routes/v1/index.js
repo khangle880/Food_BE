@@ -12,6 +12,7 @@ const cuisineRoute = require('./cuisine.route');
 const ingredientRoute = require('./ingredient.route');
 const unitRoute = require('./unit.route');
 const productTypeRoute = require('./productType.route');
+const dishTypeRoute = require('./dishType.route');
 const searchRoute = require('./search.route');
 const uploadVideoRoute = require('./uploadVideo.route');
 const uploadImageRoute = require('./uploadImage.route');
@@ -73,6 +74,10 @@ const defaultRoutes = [
   {
     path: '/product-types',
     route: productTypeRoute,
+  },
+  {
+    path: '/dish-types',
+    route: dishTypeRoute,
   },
   {
     path: '/search',

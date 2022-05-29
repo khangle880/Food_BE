@@ -18,12 +18,12 @@ const productSchema = mongoose.Schema(
       type: [{ type: String }],
       required: true,
     },
-    videoUrl: { type: String },
+    videoUrl: { type: String, transform: (v) => (v == null ? '' : v) },
     description: { type: String, required: true },
-    price: { type: Number },
-    unitId: { type: mongoose.Schema.Types.ObjectId, ref: 'Unit' },
-    saleLocations: { type: [{ type: String }] },
-    deletedAt: { type: Date },
+    price: { type: Number, transform: (v) => (v == null ? '' : v) },
+    unitId: { type: mongoose.Schema.Types.ObjectId, ref: 'Unit', transform: (v) => (v == null ? '' : v) },
+    saleLocations: { type: [{ type: String }], default: [] },
+    deletedAt: { type: Date, transform: (v) => (v == null ? '' : v) },
   },
   { timestamps: true }
 );

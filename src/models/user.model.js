@@ -48,15 +48,16 @@ const userSchema = mongoose.Schema(
       enum: roles,
       default: 'user',
     },
-    bio: { type: String, default: '' },
-    avatarUrl: { type: String, default: '' },
-    phone: { type: String, default: '' },
+    bio: { type: String, transform: (v) => (v == null ? '' : v) },
+    avatarUrl: { type: String, transform: (v) => (v == null ? '' : v) },
+    phone: { type: String, transform: (v) => (v == null ? '' : v) },
     gender: {
       type: String,
       enum: {
         values: ['MALE', 'FEMALE', 'OTHER'],
         message: "Gender includes: 'MALE', 'FEMALE', 'OTHER'",
       },
+      transform: (v) => (v == null ? '' : v),
     },
     status: { type: String, default: 'Active' },
     language: {

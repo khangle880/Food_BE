@@ -9,11 +9,12 @@ const recipeSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
-    deletedAt: { type: Date },
+    deletedAt: { type: Date, transform: (v) => (v == null ? '' : v) },
     description: { type: String, required: true },
     name: { type: String, required: true },
     photoUrls: {
       type: [{ type: String }],
+      default: [],
     },
     servings: {
       type: Number,
@@ -41,7 +42,7 @@ const recipeSchema = mongoose.Schema(
       ],
       required: true,
     },
-    specialGoals: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SpecialGoal' }] },
+    specialGoals: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SpecialGoal' }], default: [] },
     totalView: {
       type: Number,
       validate: {
@@ -62,7 +63,7 @@ const recipeSchema = mongoose.Schema(
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MenuType' }],
       required: true,
     },
-    videoUrl: { type: String },
+    videoUrl: { type: String, transform: (v) => (v == null ? '' : v) },
     cuisineId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cuisine', required: true },
   },
   { timestamps: true }

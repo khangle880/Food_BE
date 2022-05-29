@@ -5,6 +5,7 @@ module.exports.commentValidation = require('./comment.validation');
 module.exports.specialGoalValidation = require('./specialGoal.validation');
 module.exports.menuTypeValidation = require('./menuType.validation');
 module.exports.cuisineValidation = require('./cuisine.validation');
+module.exports.dishValidation = require('./dishType.validation');
 module.exports.ingredientValidation = require('./ingredient.validation');
 module.exports.unitValidation = require('./unit.validation');
 module.exports.productValidation = require('./product.validation');

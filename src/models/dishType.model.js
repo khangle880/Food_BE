@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { toJSON, paginate } = require('./plugins');
 
-const productTypeSchema = mongoose.Schema(
+const dishTypeSchema = mongoose.Schema(
   {
     names: { type: [{ type: String }], required: true },
   },
@@ -9,12 +9,12 @@ const productTypeSchema = mongoose.Schema(
 );
 
 // add plugin that converts mongoose to json
-productTypeSchema.plugin(toJSON);
-productTypeSchema.plugin(paginate);
+dishTypeSchema.plugin(toJSON);
+dishTypeSchema.plugin(paginate);
 
 /**
- * @typedef ProductType
+ * @typedef DishType
  */
-const ProductType = mongoose.model('ProductType', productTypeSchema);
+const DishType = mongoose.model('DishType', dishTypeSchema);
 
-module.exports = ProductType;
+module.exports = DishType;
