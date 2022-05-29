@@ -67,7 +67,7 @@ const userSchema = mongoose.Schema(
         message: "Language includes: 'VN', 'EN'",
       },
     },
-    deletedAt: { type: Date },
+    deletedAt: { type: Date, transform: (v) => (v == null ? '' : v) },
   },
   { timestamps: true }
 );
