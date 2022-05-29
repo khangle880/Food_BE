@@ -6,6 +6,29 @@ const ApiError = require('../utils/ApiError');
 const lookup = [
   {
     $lookup: {
+      from: 'users',
+      localField: 'creatorId',
+      foreignField: '_id',
+      as: 'creator',
+    },
+  },
+  { $unwind: { path: '$creator', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      'creator.id': '$creator._id',
+    },
+  },
+  {
+    $project: {
+      'creator._id': 0,
+      'creator.__v': 0,
+      'creator.password': 0,
+      'creator.createdAt': 0,
+      'creator.updatedAt': 0,
+    },
+  },
+  {
+    $lookup: {
       from: 'recipelikes',
       localField: '_id',
       foreignField: 'recipeId',
@@ -36,11 +59,30 @@ const lookup = [
       as: 'specialGoals',
     },
   },
+  { $unwind: { path: '$specialGoals', preserveNullAndEmptyArrays: true } },
   {
     $addFields: {
-      specialGoals: '$specialGoals.name',
+      'specialGoals.id': '$specialGoals._id',
     },
   },
+  {
+    $project: {
+      'specialGoals.__v': 0,
+      'specialGoals._id': 0,
+      'specialGoals.createdAt': 0,
+      'specialGoals.updatedAt': 0,
+    },
+  },
+  {
+    $group: {
+      _id: '$_id',
+      specialGoals: {
+        $push: '$specialGoals',
+      },
+      doc: { $first: '$$ROOT' },
+    },
+  },
+  { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { specialGoals: '$specialGoals' }] } } },
   {
     $lookup: {
       from: 'menutypes',
@@ -49,38 +91,57 @@ const lookup = [
       as: 'menuTypes',
     },
   },
+  { $unwind: { path: '$menuTypes', preserveNullAndEmptyArrays: true } },
   {
     $addFields: {
-      menuTypes: '$menuTypes.name',
+      'menuTypes.id': '$menuTypes._id',
     },
   },
+  {
+    $project: {
+      'menuTypes.__v': 0,
+      'menuTypes._id': 0,
+      'menuTypes.createdAt': 0,
+      'menuTypes.updatedAt': 0,
+    },
+  },
+  {
+    $group: {
+      _id: '$_id',
+      menuTypes: {
+        $push: '$menuTypes',
+      },
+      doc: { $first: '$$ROOT' },
+    },
+  },
+  { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { menuTypes: '$menuTypes' }] } } },
   { $unwind: { path: '$ingredients', preserveNullAndEmptyArrays: true } },
   {
     $lookup: {
       from: 'ingredients',
       localField: 'ingredients.ingredientId',
       foreignField: '_id',
-      as: 'ingredients.ingredientId',
+      as: 'ingredients.ingredient',
     },
   },
   {
-    $unwind: { path: '$ingredients.ingredientId', preserveNullAndEmptyArrays: true },
+    $unwind: { path: '$ingredients.ingredient', preserveNullAndEmptyArrays: true },
   },
   {
     $lookup: {
       from: 'units',
       localField: 'ingredients.unitId',
       foreignField: '_id',
-      as: 'ingredients.unitId',
+      as: 'ingredients.unit',
     },
   },
   {
-    $unwind: { path: '$ingredients.unitId', preserveNullAndEmptyArrays: true },
+    $unwind: { path: '$ingredients.unit', preserveNullAndEmptyArrays: true },
   },
   {
     $addFields: {
-      'ingredients.name': '$ingredients.ingredientId.name',
-      'ingredients.unit': '$ingredients.unitId.name',
+      'ingredients.ingredient.id': '$ingredients.ingredient._id',
+      'ingredients.unit.id': '$ingredients.unit._id',
     },
   },
   {
@@ -88,6 +149,14 @@ const lookup = [
       'ingredients.ingredientId': 0,
       'ingredients.unitId': 0,
       'ingredients._id': 0,
+      'ingredients.ingredient.__v': 0,
+      'ingredients.ingredient._id': 0,
+      'ingredients.ingredient.createdAt': 0,
+      'ingredients.ingredient.updatedAt': 0,
+      'ingredients.unit.__v': 0,
+      'ingredients.unit._id': 0,
+      'ingredients.unit.createdAt': 0,
+      'ingredients.unit.updatedAt': 0,
     },
   },
   {
@@ -110,7 +179,7 @@ const lookup = [
     },
   },
   {
-    $project: { _id: 0, __v: 0, likedUsers: 0, cookedUsers: 0, ratings: 0 },
+    $project: { _id: 0, __v: 0, likedUsers: 0, cookedUsers: 0, ratings: 0, creatorId: 0 },
   },
 ];
 
@@ -143,7 +212,8 @@ const lookupLikedUsers = [
       'likedUsers.__v': 0,
       'likedUsers._id': 0,
       'likedUsers.password': 0,
-      'likedUsers.role': 0,
+      'likedUsers.createdAt': 0,
+      'likedUsers.updatedAt': 0,
     },
   },
   {
@@ -197,7 +267,8 @@ const lookupCookedUsers = [
       'cookedUsers.__v': 0,
       'cookedUsers._id': 0,
       'cookedUsers.password': 0,
-      'cookedUsers.role': 0,
+      'cookedUsers.createdAt': 0,
+      'cookedUsers.updatedAt': 0,
     },
   },
   {
@@ -251,7 +322,8 @@ const lookupRatingUsers = [
       'ratings.__v': 0,
       'ratings._id': 0,
       'ratings.password': 0,
-      'ratings.role': 0,
+      'ratings.createdAt': 0,
+      'ratings.updatedAt': 0,
     },
   },
   {

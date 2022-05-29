@@ -155,7 +155,6 @@ const search = async (text, options) => {
         __v: 0,
         _id: 0,
         password: 0,
-        role: 0,
       },
     },
   ]);
