@@ -60,6 +60,14 @@ const userSchema = mongoose.Schema(
       transform: (v) => (v == null ? '' : v),
     },
     status: { type: String, default: 'Active' },
+    language: {
+      type: String,
+      enum: {
+        values: ['VN', 'EN'],
+        message: "Language includes: 'VN', 'EN'",
+      },
+      default: '',
+    },
     deletedAt: { type: Date, transform: (v) => (v == null ? '' : v) },
   },
   { timestamps: true }
