@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 const { toJSON, paginate } = require('./plugins');
 
 const commentSchema = mongoose.Schema(
@@ -32,6 +33,7 @@ const commentSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 commentSchema.plugin(toJSON);
 commentSchema.plugin(paginate);
+commentSchema.plugin(aggregatePaginate);
 
 /**
  * @typedef Comment

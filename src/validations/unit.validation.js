@@ -3,13 +3,13 @@ const { objectId } = require('./custom.validation');
 
 const create = {
   body: Joi.object().keys({
-    names: Joi.array().items(Joi.string()).required(),
+    name: Joi.string().required(),
   }),
 };
 
 const getItems = {
   query: Joi.object().keys({
-    names: Joi.string(),
+    name: Joi.string(),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
     page: Joi.number().integer(),
@@ -28,7 +28,7 @@ const updateById = {
   }),
   body: Joi.object()
     .keys({
-      names: Joi.array().items(Joi.string()),
+      name: Joi.string(),
     })
     .min(1),
 };

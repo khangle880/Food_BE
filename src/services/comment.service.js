@@ -3,6 +3,36 @@ const mongoose = require('mongoose');
 const { Comment, CommentReaction } = require('../models');
 const ApiError = require('../utils/ApiError');
 
+const lookup = [
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'creatorId',
+      foreignField: '_id',
+      as: 'creator',
+    },
+  },
+  { $unwind: { path: '$creator', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      'creator.id': '$creator._id',
+      id: '$_id',
+    },
+  },
+  {
+    $project: {
+      'creator._id': 0,
+      'creator.__v': 0,
+      'creator.password': 0,
+      'creator.createdAt': 0,
+      'creator.updatedAt': 0,
+      creatorId: 0,
+      _id: 0,
+      __v: 0,
+    },
+  },
+];
+
 const lookupCommentReactions = [
   {
     $lookup: {
@@ -33,7 +63,6 @@ const lookupCommentReactions = [
       'commentReactions.user.__v': 0,
       'commentReactions.user._id': 0,
       'commentReactions.user.password': 0,
-      'commentReactions.user.role': 0,
     },
   },
   {
@@ -63,12 +92,22 @@ const create = async (creatorId, body) => {
 };
 
 const query = async (filter, options) => {
-  const items = await Comment.paginate(filter, options);
+  const recipes = Comment.aggregate([...lookup, { $match: filter }]);
+  const items = await Comment.aggregatePaginate(recipes, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
   return items;
 };
 
 const getById = async (id) => {
-  return Comment.findById(id);
+  const items = await Comment.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookup]).limit(1);
+  return items.at(0);
 };
 
 const updateById = async (id, updateBody) => {
@@ -77,8 +116,8 @@ const updateById = async (id, updateBody) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Comment not found');
   }
   Object.assign(item, updateBody);
-  await item.save();
-  return item;
+  await Comment.updateOne({ _id: item.id }, { $set: updateBody });
+  return getById(id);
 };
 
 const deleteById = async (id) => {
