@@ -48,9 +48,9 @@ const userSchema = mongoose.Schema(
       enum: roles,
       default: 'user',
     },
-    bio: { type: String },
-    avatarUrl: { type: String },
-    phone: { type: String },
+    bio: { type: String, default: '' },
+    avatarUrl: { type: String, default: '' },
+    phone: { type: String, default: '' },
     gender: {
       type: String,
       enum: {
@@ -59,6 +59,13 @@ const userSchema = mongoose.Schema(
       },
     },
     status: { type: String, default: 'Active' },
+    language: {
+      type: String,
+      enum: {
+        values: ['VN', 'EN'],
+        message: "Language includes: 'VN', 'EN'",
+      },
+    },
     deletedAt: { type: Date },
   },
   { timestamps: true }

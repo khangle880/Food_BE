@@ -15,6 +15,7 @@ const productTypeRoute = require('./productType.route');
 const searchRoute = require('./search.route');
 const uploadVideoRoute = require('./uploadVideo.route');
 const uploadImageRoute = require('./uploadImage.route');
+const messageRoute = require('./message.route');
 const docsRoute = require('./docs.route');
 const config = require('../../config/config');
 
@@ -84,6 +85,10 @@ const defaultRoutes = [
   {
     path: '/photos',
     route: uploadImageRoute,
+  },
+  {
+    path: '/message',
+    route: messageRoute,
   },
 ];
 

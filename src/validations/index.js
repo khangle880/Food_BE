@@ -14,3 +14,4 @@ module.exports.recipeCookValidation = require('./recipeCook.validation');
 module.exports.ratingValidation = require('./rating.validation');
 module.exports.commentReactionValidation = require('./commentReaction.validation');
 module.exports.postReactionValidation = require('./postReaction.validation');
+module.exports.messageValidation = require('./message.validation');
