@@ -10,7 +10,7 @@ const getMessage = async (language, message, senderId) => {
     senderId,
   });
 
-  const data = await axios(interceptorConfig)
+  const responseData = await axios(interceptorConfig)
     .then(function (response) {
       return response;
     })
@@ -18,7 +18,11 @@ const getMessage = async (language, message, senderId) => {
       throw new ApiError(httpStatus.BAD_GATEWAY, error);
     });
 
-  return data;
+  Object.keys(responseData.data).forEach(function (key) {
+    responseData.data[key].sender = 'chatbot';
+  });
+
+  return responseData;
 };
 
 module.exports = {
