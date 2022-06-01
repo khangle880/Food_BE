@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 const { toJSON, paginate } = require('./plugins');
 
 const ratingSchema = mongoose.Schema(
@@ -23,6 +24,7 @@ ratingSchema.index({ userId: 1, recipeId: 1 }, { unique: true });
 // add plugin that converts mongoose to json
 ratingSchema.plugin(toJSON);
 ratingSchema.plugin(paginate);
+ratingSchema.plugin(aggregatePaginate);
 
 /**
  * @typedef Rating

@@ -46,6 +46,16 @@ const lookup = [
       __v: 0,
     },
   },
+  {
+    $replaceWith: {
+      $arrayToObject: {
+        $filter: {
+          input: { $objectToArray: '$$ROOT' },
+          cond: { $not: { $in: ['$$this.v', [null, '', {}, [{}]]] } },
+        },
+      },
+    },
+  },
 ];
 const create = async (creatorId, body) => {
   return Product.create({ creatorId, ...body });

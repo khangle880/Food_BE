@@ -36,54 +36,33 @@ const lookup = [
 const lookupPostReactions = [
   {
     $lookup: {
-      from: 'postreactions',
-      localField: '_id',
-      foreignField: 'postId',
-      as: 'postReactions',
-    },
-  },
-  { $unwind: { path: '$postReactions', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
       from: 'users',
-      localField: 'postReactions.userId',
+      localField: 'userId',
       foreignField: '_id',
-      as: 'postReactions.user',
+      as: 'user',
     },
   },
-  { $unwind: { path: '$postReactions.user', preserveNullAndEmptyArrays: true } },
+  { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
   {
-    $project: {
-      'postReactions.user': 1,
-      'postReactions.type': 1,
-    },
-  },
-  {
-    $project: {
-      'postReactions.user.__v': 0,
-      'postReactions.user._id': 0,
-      'postReactions.user.password': 0,
-      'postReactions.user.role': 0,
-    },
-  },
-  {
-    $group: {
-      _id: '$_id',
-      results: {
-        $push: '$postReactions',
-      },
+    $addFields: {
+      'user.id': '$user._id',
+      id: '$_id',
     },
   },
   {
     $project: {
+      'user.__v': 0,
+      'user._id': 0,
+      'user.password': 0,
+      'user.createdAt': 0,
+      'user.updatedAt': 0,
       _id: 0,
-      results: {
-        $cond: {
-          if: { $eq: ['$results', [{}]] },
-          then: [],
-          else: '$results',
-        },
-      },
+    },
+  },
+  {
+    $project: {
+      user: 1,
+      type: 1,
     },
   },
 ];
@@ -157,9 +136,18 @@ const deleteReaction = async (userId, postId) => {
   return item;
 };
 
-const getPostReactions = async (id) => {
-  const items = await Post.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookupPostReactions]);
-  return items.at(0);
+const getPostReactions = async (id, options) => {
+  const data = PostReaction.aggregate([{ $match: { postId: mongoose.Types.ObjectId(id) } }, ...lookupPostReactions]);
+  const items = await PostReaction.aggregatePaginate(data, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
 };
 
 const search = async (text, options) => {

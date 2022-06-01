@@ -45,7 +45,8 @@ const deleteReaction = catchAsync(async (req, res) => {
 });
 
 const getCommentReactions = catchAsync(async (req, res) => {
-  const items = await commentService.getCommentReactions(req.params.id);
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await commentService.getCommentReactions(req.params.id, options);
   res.send(items);
 });
 

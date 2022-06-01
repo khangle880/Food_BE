@@ -14,3 +14,4 @@ module.exports.unitService = require('./unit.service');
 module.exports.productTypeService = require('./productType.service');
 module.exports.messageService = require('./message.service');
 module.exports.dishTypeService = require('./dishType.service');
+module.exports.cookMethodService = require('./cookMethod.service');

@@ -16,3 +16,4 @@ module.exports.Rating = require('./rating.model');
 module.exports.CommentReaction = require('./commentReaction.model');
 module.exports.PostReaction = require('./postReaction.model');
 module.exports.DishType = require('./dishType.model');
+module.exports.CookMethod = require('./cookMethod.model');

@@ -3,7 +3,7 @@ const { toJSON, paginate } = require('./plugins');
 
 const unitSchema = mongoose.Schema(
   {
-    name: { type: [{ type: String }], required: true },
+    name: { type: String , required: true },
   },
   { timestamps: true }
 );

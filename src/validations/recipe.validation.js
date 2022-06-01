@@ -27,6 +27,8 @@ const create = {
       specialGoals: Joi.array().items(Joi.string().custom(objectId)),
       menuTypes: Joi.array().items(Joi.string().custom(objectId)),
       cuisineId: Joi.string().custom(objectId).required(),
+      dishTypeId: Joi.string().custom(objectId).required(),
+      cookMethodId: Joi.string().custom(objectId).required(),
     })
     .or('photoUrls', 'videoUrl'),
 };
@@ -40,6 +42,8 @@ const getItems = {
     specialGoals: Joi.array().items(Joi.string().custom(objectId)),
     menuTypes: Joi.array().items(Joi.string().custom(objectId)),
     cuisineId: Joi.string().custom(objectId),
+    dishTypeId: Joi.string().custom(objectId),
+    cookMethodId: Joi.string().custom(objectId),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
     page: Joi.number().integer(),
@@ -113,6 +117,8 @@ const updateById = {
       specialGoals: Joi.array().items(Joi.string().custom(objectId)),
       menuTypes: Joi.array().items(Joi.string().custom(objectId)),
       cuisineId: Joi.string().custom(objectId),
+      dishTypeId: Joi.string().custom(objectId),
+      cookMethodId: Joi.string().custom(objectId),
     })
     .min(1),
 };
@@ -126,18 +132,27 @@ const deleteById = {
 const getLikedUsers = {
   params: Joi.object().keys({
     id: Joi.string().required().custom(objectId),
+    sortBy: Joi.string(),
+    limit: Joi.number().integer(),
+    page: Joi.number().integer(),
   }),
 };
 
 const getCookedUsers = {
   params: Joi.object().keys({
     id: Joi.string().required().custom(objectId),
+    sortBy: Joi.string(),
+    limit: Joi.number().integer(),
+    page: Joi.number().integer(),
   }),
 };
 
 const getRatingUsers = {
   params: Joi.object().keys({
     id: Joi.string().required().custom(objectId),
+    sortBy: Joi.string(),
+    limit: Joi.number().integer(),
+    page: Joi.number().integer(),
   }),
 };
 module.exports = {

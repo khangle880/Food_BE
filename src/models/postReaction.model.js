@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 const { toJSON, paginate } = require('./plugins');
 
 const postReactionSchema = mongoose.Schema(
@@ -26,6 +27,7 @@ postReactionSchema.index({ userId: 1, postId: 1 }, { unique: true });
 // add plugin that converts mongoose to json
 postReactionSchema.plugin(toJSON);
 postReactionSchema.plugin(paginate);
+postReactionSchema.plugin(aggregatePaginate);
 
 /**
  * @typedef PostReaction

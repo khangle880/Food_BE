@@ -66,17 +66,20 @@ const unvote = catchAsync(async (req, res) => {
 });
 
 const getLikedUsers = catchAsync(async (req, res) => {
-  const items = await recipeService.getLikedUsers(req.params.id);
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await recipeService.getLikedUsers(req.params.id, options);
   res.send(items);
 });
 
 const getCookedUsers = catchAsync(async (req, res) => {
-  const items = await recipeService.getCookedUsers(req.params.id);
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await recipeService.getCookedUsers(req.params.id, options);
   res.send(items);
 });
 
 const getRatingUsers = catchAsync(async (req, res) => {
-  const items = await recipeService.getRatingUsers(req.params.id);
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await recipeService.getRatingUsers(req.params.id, options);
   res.send(items);
 });
 

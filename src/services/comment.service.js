@@ -36,53 +36,33 @@ const lookup = [
 const lookupCommentReactions = [
   {
     $lookup: {
-      from: 'commentreactions',
-      localField: '_id',
-      foreignField: 'commentId',
-      as: 'commentReactions',
-    },
-  },
-  { $unwind: { path: '$commentReactions', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
       from: 'users',
-      localField: 'commentReactions.userId',
+      localField: 'userId',
       foreignField: '_id',
-      as: 'commentReactions.user',
+      as: 'user',
     },
   },
-  { $unwind: { path: '$commentReactions.user', preserveNullAndEmptyArrays: true } },
+  { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
   {
-    $project: {
-      'commentReactions.user': 1,
-      'commentReactions.type': 1,
-    },
-  },
-  {
-    $project: {
-      'commentReactions.user.__v': 0,
-      'commentReactions.user._id': 0,
-      'commentReactions.user.password': 0,
-    },
-  },
-  {
-    $group: {
-      _id: '$_id',
-      results: {
-        $push: '$commentReactions',
-      },
+    $addFields: {
+      'user.id': '$user._id',
+      id: '$_id',
     },
   },
   {
     $project: {
+      'user.__v': 0,
+      'user._id': 0,
+      'user.password': 0,
+      'user.createdAt': 0,
+      'user.updatedAt': 0,
       _id: 0,
-      results: {
-        $cond: {
-          if: { $eq: ['$results', [{}]] },
-          then: [],
-          else: '$results',
-        },
-      },
+    },
+  },
+  {
+    $project: {
+      user: 1,
+      type: 1,
     },
   },
 ];
@@ -156,9 +136,21 @@ const deleteReaction = async (userId, commentId) => {
   return item;
 };
 
-const getCommentReactions = async (id) => {
-  const items = await Comment.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookupCommentReactions]);
-  return items.at(0);
+const getCommentReactions = async (id, options) => {
+  const data = CommentReaction.aggregate([
+    { $match: { commentId: mongoose.Types.ObjectId(id) } },
+    ...lookupCommentReactions,
+  ]);
+  const items = await CommentReaction.aggregatePaginate(data, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
 };
 
 module.exports = {
