@@ -4,8 +4,8 @@ const ApiError = require('../utils/ApiError');
 const { interceptor, METHOD } = require('../config/interceptor');
 const config = require('../config/config');
 
-const getMessage = async (language, message, senderId) => {
-  const interceptorConfig = interceptor(language === 'EN' ? config.rasa_en_url : config.rasa_vn_url, METHOD.POST, {
+const getMessage = async (languageSetting, message, senderId) => {
+  const interceptorConfig = interceptor(languageSetting === 'EN' ? config.rasa_en_url : config.rasa_vn_url, METHOD.POST, {
     message,
     senderId,
   });

@@ -60,13 +60,13 @@ const userSchema = mongoose.Schema(
       transform: (v) => (v == null ? '' : v),
     },
     status: { type: String, default: 'Active' },
-    language: {
+    languageSetting: {
       type: String,
       enum: {
         values: ['VN', 'EN'],
         message: "Language includes: 'VN', 'EN'",
       },
-      default: '',
+      default: 'EN',
     },
     deletedAt: { type: Date, transform: (v) => (v == null ? '' : v) },
   },

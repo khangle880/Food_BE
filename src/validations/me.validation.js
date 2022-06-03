@@ -10,6 +10,7 @@ const updateMe = {
       avatarUrl: Joi.string(),
       phone: Joi.string(),
       gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER'),
+      languageSetting: Joi.string().valid('VN', 'EN'),
     })
     .min(1),
 };
