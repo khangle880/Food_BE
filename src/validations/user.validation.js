@@ -64,6 +64,22 @@ const getLikedRecipes = {
   params: Joi.object().keys({
     id: Joi.string().required().custom(objectId),
   }),
+  query: Joi.object().keys({
+    sortBy: Joi.string(),
+    limit: Joi.number().integer(),
+    page: Joi.number().integer(),
+  }),
+};
+
+const getRecipes = {
+  params: Joi.object().keys({
+    id: Joi.string().required().custom(objectId),
+  }),
+  query: Joi.object().keys({
+    sortBy: Joi.string(),
+    limit: Joi.number().integer(),
+    page: Joi.number().integer(),
+  }),
 };
 
 module.exports = {
@@ -75,4 +91,5 @@ module.exports = {
   follow,
   unFollow,
   getLikedRecipes,
+  getRecipes,
 };

@@ -5,20 +5,19 @@ const catchAsync = require('../utils/catchAsync');
 const { recipeService } = require('../services');
 
 const create = catchAsync(async (req, res) => {
-  const body = { ...req.body, creatorId: req.user.id };
-  const item = await recipeService.create(body);
+  const item = await recipeService.create(req.user.id, req.body);
   res.status(httpStatus.CREATED).send(item);
 });
 
 const getItems = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['name', 'servings', 'level', 'ingredients', 'specialGoals', 'menuTypes', 'cuisineId']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await recipeService.query(filter, options);
+  const result = await recipeService.query(req.user.id, filter, options);
   res.send(result);
 });
 
 const getById = catchAsync(async (req, res) => {
-  const item = await recipeService.getById(req.params.id);
+  const item = await recipeService.getById(req.user.id, req.params.id);
   if (!item) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
@@ -26,7 +25,7 @@ const getById = catchAsync(async (req, res) => {
 });
 
 const updateById = catchAsync(async (req, res) => {
-  const item = await recipeService.updateById(req.params.id, req.body);
+  const item = await recipeService.updateById(req.user.id, req.params.id, req.body);
   res.send(item);
 });
 

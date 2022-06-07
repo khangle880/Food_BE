@@ -35,7 +35,8 @@ const recipeSchema = mongoose.Schema(
     ingredients: {
       type: [
         {
-          ingredientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ingredient', required: true },
+          name: { type: String, required: true },
+          typeId: { type: mongoose.Schema.Types.ObjectId, ref: 'IngredientType', required: true },
           unitId: { type: mongoose.Schema.Types.ObjectId, ref: 'Unit', required: true },
           quantity: { type: Number, required: true },
         },
@@ -64,6 +65,7 @@ const recipeSchema = mongoose.Schema(
       required: true,
     },
     videoUrl: { type: String, transform: (v) => (v == null ? '' : v) },
+    videoThumbnail: { type: String, transform: (v) => (v == null ? '' : v) },
     cuisineId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cuisine', required: true },
     dishTypeId: { type: mongoose.Schema.Types.ObjectId, ref: 'DishType', required: true },
     cookMethodId: { type: mongoose.Schema.Types.ObjectId, ref: 'CookMethod', required: true },

@@ -9,12 +9,13 @@ const productRoute = require('./product.route');
 const specialGoalRoute = require('./specialGoal.route');
 const menuTypeRoute = require('./menuType.route');
 const cuisineRoute = require('./cuisine.route');
-const ingredientRoute = require('./ingredient.route');
+const ingredientTypeRoute = require('./ingredientType.route');
 const unitRoute = require('./unit.route');
 const productTypeRoute = require('./productType.route');
 const dishTypeRoute = require('./dishType.route');
 const cookMethodRoute = require('./cookMethod.route');
 const searchRoute = require('./search.route');
+const lookupRoute = require('./lookup.route');
 const uploadVideoRoute = require('./uploadVideo.route');
 const uploadImageRoute = require('./uploadImage.route');
 const messageRoute = require('./message.route');
@@ -53,8 +54,8 @@ const defaultRoutes = [
     route: productRoute,
   },
   {
-    path: '/ingredients',
-    route: ingredientRoute,
+    path: '/ingredient-types',
+    route: ingredientTypeRoute,
   },
   {
     path: '/special-goals',
@@ -89,6 +90,10 @@ const defaultRoutes = [
     route: searchRoute,
   },
   {
+    path: '/lookup',
+    route: lookupRoute,
+  },
+  {
     path: '/videos',
     route: uploadVideoRoute,
   },
@@ -96,6 +101,7 @@ const defaultRoutes = [
     path: '/photos',
     route: uploadImageRoute,
   },
+
   {
     path: '/message',
     route: messageRoute,

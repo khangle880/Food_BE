@@ -3,283 +3,296 @@ const mongoose = require('mongoose');
 const { Recipe, RecipeLike, RecipeCook, Rating } = require('../models');
 const ApiError = require('../utils/ApiError');
 
-const lookup = [
-  {
-    $lookup: {
-      from: 'users',
-      localField: 'creatorId',
-      foreignField: '_id',
-      as: 'creator',
-    },
-  },
-  { $unwind: { path: '$creator', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'creator.id': '$creator._id',
-    },
-  },
-  {
-    $project: {
-      'creator._id': 0,
-      'creator.__v': 0,
-      'creator.password': 0,
-      'creator.createdAt': 0,
-      'creator.updatedAt': 0,
-    },
-  },
-  {
-    $lookup: {
-      from: 'recipelikes',
-      localField: '_id',
-      foreignField: 'recipeId',
-      as: 'likedUsers',
-    },
-  },
-  {
-    $lookup: {
-      from: 'recipecooks',
-      localField: '_id',
-      foreignField: 'recipeId',
-      as: 'cookedUsers',
-    },
-  },
-  {
-    $lookup: {
-      from: 'ratings',
-      localField: '_id',
-      foreignField: 'recipeId',
-      as: 'ratings',
-    },
-  },
-  {
-    $lookup: {
-      from: 'specialgoals',
-      localField: 'specialGoals',
-      foreignField: '_id',
-      as: 'specialGoals',
-    },
-  },
-  { $unwind: { path: '$specialGoals', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'specialGoals.id': '$specialGoals._id',
-    },
-  },
-  {
-    $project: {
-      'specialGoals.__v': 0,
-      'specialGoals._id': 0,
-      'specialGoals.createdAt': 0,
-      'specialGoals.updatedAt': 0,
-    },
-  },
-  {
-    $group: {
-      _id: '$_id',
-      specialGoals: {
-        $push: '$specialGoals',
+const lookup = (userId) => {
+  const userIdObj = mongoose.Types.ObjectId(userId);
+  return [
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'creatorId',
+        foreignField: '_id',
+        as: 'creator',
       },
-      doc: { $first: '$$ROOT' },
     },
-  },
-  { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { specialGoals: '$specialGoals' }] } } },
-  {
-    $lookup: {
-      from: 'menutypes',
-      localField: 'menuTypes',
-      foreignField: '_id',
-      as: 'menuTypes',
-    },
-  },
-  { $unwind: { path: '$menuTypes', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'menuTypes.id': '$menuTypes._id',
-    },
-  },
-  {
-    $project: {
-      'menuTypes.__v': 0,
-      'menuTypes._id': 0,
-      'menuTypes.createdAt': 0,
-      'menuTypes.updatedAt': 0,
-    },
-  },
-  {
-    $group: {
-      _id: '$_id',
-      menuTypes: {
-        $push: '$menuTypes',
+    { $unwind: { path: '$creator', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        'creator.id': '$creator._id',
       },
-      doc: { $first: '$$ROOT' },
     },
-  },
-  { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { menuTypes: '$menuTypes' }] } } },
-  {
-    $lookup: {
-      from: 'cuisines',
-      localField: 'cuisineId',
-      foreignField: '_id',
-      as: 'cuisine',
+    {
+      $project: {
+        'creator._id': 0,
+        'creator.__v': 0,
+        'creator.password': 0,
+        'creator.createdAt': 0,
+        'creator.updatedAt': 0,
+      },
     },
-  },
-  { $unwind: { path: '$cuisine', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'cuisine.id': '$cuisine._id',
+    {
+      $lookup: {
+        from: 'recipelikes',
+        localField: '_id',
+        foreignField: 'recipeId',
+        as: 'likedUsers',
+      },
     },
-  },
-  {
-    $project: {
-      'cuisine._id': 0,
-      'cuisine.__v': 0,
-      'cuisine.createdAt': 0,
-      'cuisine.updatedAt': 0,
+    {
+      $lookup: {
+        from: 'recipecooks',
+        localField: '_id',
+        foreignField: 'recipeId',
+        as: 'cookedUsers',
+      },
     },
-  },
-  {
-    $lookup: {
-      from: 'dishtypes',
-      localField: 'dishTypeId',
-      foreignField: '_id',
-      as: 'dishType',
+    {
+      $lookup: {
+        from: 'ratings',
+        localField: '_id',
+        foreignField: 'recipeId',
+        as: 'ratings',
+      },
     },
-  },
-  { $unwind: { path: '$dishType', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'dishType.id': '$dishType._id',
+    {
+      $lookup: {
+        from: 'specialgoals',
+        localField: 'specialGoals',
+        foreignField: '_id',
+        as: 'specialGoals',
+      },
     },
-  },
-  {
-    $project: {
-      'dishType._id': 0,
-      'dishType.__v': 0,
-      'dishType.createdAt': 0,
-      'dishType.updatedAt': 0,
+    { $unwind: { path: '$specialGoals', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        'specialGoals.id': '$specialGoals._id',
+      },
     },
-  },
-  {
-    $lookup: {
-      from: 'cookmethods',
-      localField: 'cookMethodId',
-      foreignField: '_id',
-      as: 'cookMethod',
+    {
+      $project: {
+        'specialGoals.__v': 0,
+        'specialGoals._id': 0,
+        'specialGoals.createdAt': 0,
+        'specialGoals.updatedAt': 0,
+      },
     },
-  },
-  { $unwind: { path: '$cookMethod', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'cookMethod.id': '$cookMethod._id',
+    {
+      $group: {
+        _id: '$_id',
+        specialGoals: {
+          $push: '$specialGoals',
+        },
+        doc: { $first: '$$ROOT' },
+      },
     },
-  },
-  {
-    $project: {
-      'cookMethod._id': 0,
-      'cookMethod.__v': 0,
-      'cookMethod.createdAt': 0,
-      'cookMethod.updatedAt': 0,
+    { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { specialGoals: '$specialGoals' }] } } },
+    {
+      $lookup: {
+        from: 'menutypes',
+        localField: 'menuTypes',
+        foreignField: '_id',
+        as: 'menuTypes',
+      },
     },
-  },
-  { $unwind: { path: '$ingredients', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'ingredients',
-      localField: 'ingredients.ingredientId',
-      foreignField: '_id',
-      as: 'ingredients.ingredient',
+    { $unwind: { path: '$menuTypes', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        'menuTypes.id': '$menuTypes._id',
+      },
     },
-  },
-  {
-    $unwind: { path: '$ingredients.ingredient', preserveNullAndEmptyArrays: true },
-  },
-  {
-    $lookup: {
-      from: 'units',
-      localField: 'ingredients.unitId',
-      foreignField: '_id',
-      as: 'ingredients.unit',
+    {
+      $project: {
+        'menuTypes.__v': 0,
+        'menuTypes._id': 0,
+        'menuTypes.createdAt': 0,
+        'menuTypes.updatedAt': 0,
+      },
     },
-  },
-  {
-    $unwind: { path: '$ingredients.unit', preserveNullAndEmptyArrays: true },
-  },
-  {
-    $addFields: {
-      'ingredients.ingredient.id': '$ingredients.ingredient._id',
-      'ingredients.unit.id': '$ingredients.unit._id',
+    {
+      $group: {
+        _id: '$_id',
+        menuTypes: {
+          $push: '$menuTypes',
+        },
+        doc: { $first: '$$ROOT' },
+      },
     },
-  },
-  {
-    $project: {
-      'ingredients.ingredientId': 0,
-      'ingredients.unitId': 0,
-      'ingredients._id': 0,
-      'ingredients.ingredient.__v': 0,
-      'ingredients.ingredient._id': 0,
-      'ingredients.ingredient.createdAt': 0,
-      'ingredients.ingredient.updatedAt': 0,
-      'ingredients.unit.__v': 0,
-      'ingredients.unit._id': 0,
-      'ingredients.unit.createdAt': 0,
-      'ingredients.unit.updatedAt': 0,
+    { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { menuTypes: '$menuTypes' }] } } },
+    {
+      $lookup: {
+        from: 'cuisines',
+        localField: 'cuisineId',
+        foreignField: '_id',
+        as: 'cuisine',
+      },
     },
-  },
-  {
-    $addFields: {
-      ingredients: {
-        $arrayToObject: {
-          $filter: {
-            input: { $objectToArray: '$ingredients' },
-            cond: { $not: { $in: ['$$this.v', [null, '', {}]] } },
+    { $unwind: { path: '$cuisine', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        'cuisine.id': '$cuisine._id',
+      },
+    },
+    {
+      $project: {
+        'cuisine._id': 0,
+        'cuisine.__v': 0,
+        'cuisine.createdAt': 0,
+        'cuisine.updatedAt': 0,
+      },
+    },
+    {
+      $lookup: {
+        from: 'dishtypes',
+        localField: 'dishTypeId',
+        foreignField: '_id',
+        as: 'dishType',
+      },
+    },
+    { $unwind: { path: '$dishType', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        'dishType.id': '$dishType._id',
+      },
+    },
+    {
+      $project: {
+        'dishType._id': 0,
+        'dishType.__v': 0,
+        'dishType.createdAt': 0,
+        'dishType.updatedAt': 0,
+      },
+    },
+    {
+      $lookup: {
+        from: 'cookmethods',
+        localField: 'cookMethodId',
+        foreignField: '_id',
+        as: 'cookMethod',
+      },
+    },
+    { $unwind: { path: '$cookMethod', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        'cookMethod.id': '$cookMethod._id',
+      },
+    },
+    {
+      $project: {
+        'cookMethod._id': 0,
+        'cookMethod.__v': 0,
+        'cookMethod.createdAt': 0,
+        'cookMethod.updatedAt': 0,
+      },
+    },
+    { $unwind: { path: '$ingredients', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'ingredienttypes',
+        localField: 'ingredients.typeId',
+        foreignField: '_id',
+        as: 'ingredients.type',
+      },
+    },
+    {
+      $unwind: { path: '$ingredients.type', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $lookup: {
+        from: 'units',
+        localField: 'ingredients.unitId',
+        foreignField: '_id',
+        as: 'ingredients.unit',
+      },
+    },
+    {
+      $unwind: { path: '$ingredients.unit', preserveNullAndEmptyArrays: true },
+    },
+    {
+      $addFields: {
+        'ingredients.type.id': '$ingredients.type._id',
+        'ingredients.unit.id': '$ingredients.unit._id',
+      },
+    },
+    {
+      $project: {
+        'ingredients.typeId': 0,
+        'ingredients.unitId': 0,
+        'ingredients._id': 0,
+        'ingredients.type.__v': 0,
+        'ingredients.type._id': 0,
+        'ingredients.type.createdAt': 0,
+        'ingredients.type.updatedAt': 0,
+        'ingredients.unit.__v': 0,
+        'ingredients.unit._id': 0,
+        'ingredients.unit.createdAt': 0,
+        'ingredients.unit.updatedAt': 0,
+      },
+    },
+    {
+      $addFields: {
+        ingredients: {
+          $arrayToObject: {
+            $filter: {
+              input: { $objectToArray: '$ingredients' },
+              cond: { $not: { $in: ['$$this.v', [null, '', {}]] } },
+            },
           },
         },
       },
     },
-  },
-  {
-    $group: {
-      _id: '$_id',
-      ingredients: {
-        $push: '$ingredients',
+    {
+      $group: {
+        _id: '$_id',
+        ingredients: {
+          $push: '$ingredients',
+        },
+        doc: { $first: '$$ROOT' },
       },
-      doc: { $first: '$$ROOT' },
     },
-  },
-  { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { ingredients: '$ingredients' }] } } },
-  {
-    $addFields: {
-      totalLikes: { $size: '$likedUsers' },
-      totalCook: { $size: '$cookedUsers' },
-      totalRating: { $size: '$ratings' },
-      avgRating: { $avg: '$ratings.point' },
-      id: '$_id',
+    { $replaceRoot: { newRoot: { $mergeObjects: ['$doc', { ingredients: '$ingredients' }] } } },
+    {
+      $addFields: {
+        isLiked: {
+          $in: [userIdObj, '$likedUsers.userId'],
+        },
+        isCooked: {
+          $in: [userIdObj, '$cookedUsers.userId'],
+        },
+        isVoted: {
+          $in: [userIdObj, '$ratings.userId'],
+        },
+        totalLikes: { $size: '$likedUsers' },
+        totalCooks: { $size: '$cookedUsers' },
+        totalRatings: { $size: '$ratings' },
+        avgRating: { $avg: '$ratings.point' },
+        id: '$_id',
+      },
     },
-  },
-  {
-    $project: {
-      _id: 0,
-      __v: 0,
-      likedUsers: 0,
-      cookedUsers: 0,
-      ratings: 0,
-      creatorId: 0,
-      cuisineId: 0,
-      dishTypeI: 0,
-      cookMethodId: 0,
+    {
+      $project: {
+        _id: 0,
+        __v: 0,
+        likedUsers: 0,
+        cookedUsers: 0,
+        ratings: 0,
+        creatorId: 0,
+        cuisineId: 0,
+        dishTypeI: 0,
+        cookMethodId: 0,
+      },
     },
-  },
-  {
-    $replaceWith: {
-      $arrayToObject: {
-        $filter: {
-          input: { $objectToArray: '$$ROOT' },
-          cond: { $not: { $in: ['$$this.v', [null, '', {}, [{}]]] } },
+    {
+      $replaceWith: {
+        $arrayToObject: {
+          $filter: {
+            input: { $objectToArray: '$$ROOT' },
+            cond: { $not: { $in: ['$$this.v', [null, '', {}, [{}]]] } },
+          },
         },
       },
     },
-  },
-];
+    { $sort: { createdAt: -1 } },
+  ];
+};
 
 const lookupLikedUsers = [
   {
@@ -305,6 +318,7 @@ const lookupLikedUsers = [
       'user.updatedAt': 0,
     },
   },
+  { $sort: { createdAt: -1 } },
   { $replaceRoot: { newRoot: '$user' } },
 ];
 
@@ -332,6 +346,7 @@ const lookupCookedUsers = [
       'user.updatedAt': 0,
     },
   },
+  { $sort: { createdAt: -1 } },
   { $replaceRoot: { newRoot: '$user' } },
 ];
 
@@ -367,14 +382,11 @@ const lookupRatingUsers = [
       point: 1,
     },
   },
+  { $sort: { createdAt: -1 } },
 ];
 
-const create = async (body) => {
-  return Recipe.create(body);
-};
-
-const query = async (filter, options) => {
-  const recipes = Recipe.aggregate([...lookup, { $match: filter }]);
+const query = async (userId, filter, options) => {
+  const recipes = Recipe.aggregate([...lookup(userId), { $match: filter }]);
   const items = await Recipe.aggregatePaginate(recipes, options).then((result) => {
     const value = {};
     value.results = result.docs;
@@ -387,23 +399,28 @@ const query = async (filter, options) => {
   return items;
 };
 
-const getById = async (id) => {
-  const items = await Recipe.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookup]).limit(1);
+const getById = async (userId, id) => {
+  const items = await Recipe.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookup(userId)]).limit(1);
   return items.at(0);
 };
 
-const updateById = async (id, updateBody) => {
-  const item = await getById(id);
+const create = async (creatorId, body) => {
+  const recipe = await Recipe.create({ creatorId, ...body });
+  return getById(creatorId, recipe.id);
+};
+
+const updateById = async (userId, id, updateBody) => {
+  let item = await getById(userId, id);
   if (!item) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
-  Object.assign(item, updateBody);
   await Recipe.updateOne({ _id: item.id }, { $set: updateBody });
-  return getById(id);
+  item = await getById(userId, id);
+  return item;
 };
 
 const deleteById = async (id) => {
-  const item = await getById(id);
+  const item = await Recipe.findById(id);
   if (!item) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
@@ -412,7 +429,7 @@ const deleteById = async (id) => {
 };
 
 const likeRecipe = async (userId, recipeId) => {
-  const recipe = await getById(recipeId);
+  const recipe = await getById(userId, recipeId);
   if (!recipe) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
@@ -424,7 +441,7 @@ const likeRecipe = async (userId, recipeId) => {
 };
 
 const dislikeRecipe = async (userId, recipeId) => {
-  const recipe = await getById(recipeId);
+  const recipe = await getById(userId, recipeId);
   if (!recipe) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
@@ -438,7 +455,7 @@ const dislikeRecipe = async (userId, recipeId) => {
 };
 
 const markCook = async (userId, recipeId) => {
-  const recipe = await getById(recipeId);
+  const recipe = await getById(userId, recipeId);
   if (!recipe) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
@@ -450,7 +467,7 @@ const markCook = async (userId, recipeId) => {
 };
 
 const unmarkCook = async (userId, recipeId) => {
-  const recipe = await getById(recipeId);
+  const recipe = await getById(userId, recipeId);
   if (!recipe) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
@@ -464,7 +481,7 @@ const unmarkCook = async (userId, recipeId) => {
 };
 
 const vote = async (userId, recipeId, point) => {
-  const recipe = await getById(recipeId);
+  const recipe = await getById(userId, recipeId);
   if (!recipe) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
@@ -479,7 +496,7 @@ const vote = async (userId, recipeId, point) => {
 };
 
 const unvote = async (userId, recipeId) => {
-  const recipe = await getById(recipeId);
+  const recipe = await getById(userId, recipeId);
   if (!recipe) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Recipe not found');
   }
@@ -492,7 +509,7 @@ const unvote = async (userId, recipeId) => {
   return item;
 };
 
-const search = async (text, options) => {
+const search = async (userId, text, options) => {
   const recipes = Recipe.aggregate([
     {
       $match: {
@@ -503,7 +520,7 @@ const search = async (text, options) => {
     },
     { $addFields: { score: { $meta: 'textScore' } } },
     { $match: { score: { $gt: 0.5 } } },
-    ...lookup,
+    ...lookup(userId),
   ]);
   const items = await Recipe.aggregatePaginate(recipes, options).then((result) => {
     const value = {};
@@ -575,4 +592,5 @@ module.exports = {
   getLikedUsers,
   getCookedUsers,
   getRatingUsers,
+  lookup,
 };

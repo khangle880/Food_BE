@@ -31,6 +31,7 @@ const lookup = [
       __v: 0,
     },
   },
+  { $sort: { createdAt: -1 } },
 ];
 
 const lookupCommentReactions = [
@@ -65,6 +66,7 @@ const lookupCommentReactions = [
       type: 1,
     },
   },
+  { $sort: { createdAt: -1 } },
 ];
 
 const create = async (creatorId, body) => {

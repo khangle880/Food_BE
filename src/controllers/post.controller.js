@@ -12,12 +12,12 @@ const create = catchAsync(async (req, res) => {
 const getItems = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['viewRange', 'tags']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await postService.query(filter, options);
+  const result = await postService.query(req.user.id, filter, options);
   res.send(result);
 });
 
 const getById = catchAsync(async (req, res) => {
-  const item = await postService.getById(req.params.id);
+  const item = await postService.getById(req.user.id, req.params.id);
   if (!item) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Post not found');
   }
@@ -25,7 +25,7 @@ const getById = catchAsync(async (req, res) => {
 });
 
 const updateById = catchAsync(async (req, res) => {
-  const item = await postService.updateById(req.params.id, req.body);
+  const item = await postService.updateById(req.user.id, req.params.id, req.body);
   res.send(item);
 });
 

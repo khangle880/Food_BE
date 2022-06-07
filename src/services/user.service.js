@@ -1,59 +1,22 @@
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
-const { User } = require('../models');
+const recipeService = require('./recipe.service');
+const { User, Recipe, RecipeLike } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 const lookupLikedRecipes = [
   {
     $lookup: {
-      from: 'recipelikes',
-      localField: '_id',
-      foreignField: 'userId',
-      as: 'likedRecipes',
-    },
-  },
-  { $unwind: { path: '$likedRecipes', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
       from: 'recipes',
-      localField: 'likedRecipes.recipeId',
+      localField: 'recipeId',
       foreignField: '_id',
-      as: 'likedRecipes',
+      as: 'recipe',
     },
   },
-  { $unwind: { path: '$likedRecipes', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'likedRecipes.id': '$likedRecipes._id',
-    },
-  },
-  {
-    $project: {
-      'likedRecipes.__v': 0,
-      'likedRecipes._id': 0,
-    },
-  },
-  {
-    $group: {
-      _id: '$_id',
-      results: {
-        $push: '$likedRecipes',
-      },
-    },
-  },
-  {
-    $project: {
-      _id: 0,
-      results: {
-        $cond: {
-          if: { $eq: ['$results', [{}]] },
-          then: [],
-          else: '$results',
-        },
-      },
-    },
-  },
+  { $unwind: { path: '$recipe', preserveNullAndEmptyArrays: true } },
+  { $replaceRoot: { newRoot: '$recipe' } },
 ];
+
 const create = async (body) => {
   if (await User.isEmailTaken(body.email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
@@ -170,9 +133,39 @@ const search = async (text, options) => {
   return items;
 };
 
-const getLikedRecipes = async (id) => {
-  const items = await User.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookupLikedRecipes]);
-  return items.at(0);
+const getLikedRecipes = async (userId, options) => {
+  const aggregate = RecipeLike.aggregate([
+    { $match: { userId: mongoose.Types.ObjectId(userId) } },
+    ...lookupLikedRecipes,
+    ...recipeService.lookup(userId),
+  ]);
+  const items = await RecipeLike.aggregatePaginate(aggregate, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
+};
+
+const getRecipes = async (userId, options) => {
+  const aggregate = Recipe.aggregate([
+    { $match: { creatorId: mongoose.Types.ObjectId(userId) } },
+    ...recipeService.lookup(userId),
+  ]);
+  const items = await Recipe.aggregatePaginate(aggregate, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
 };
 
 module.exports = {
@@ -187,4 +180,5 @@ module.exports = {
   changePassword,
   search,
   getLikedRecipes,
+  getRecipes,
 };

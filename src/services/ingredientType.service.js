@@ -1,24 +1,24 @@
 const httpStatus = require('http-status');
-const { Ingredient } = require('../models');
+const { IngredientType } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 const create = async (body) => {
-  return Ingredient.create(body);
+  return IngredientType.create(body);
 };
 
 const query = async (filter, options) => {
-  const items = await Ingredient.paginate(filter, options);
+  const items = await IngredientType.paginate(filter, options);
   return items;
 };
 
 const getById = async (id) => {
-  return Ingredient.findById(id);
+  return IngredientType.findById(id);
 };
 
 const updateById = async (id, updateBody) => {
   const item = await getById(id);
   if (!item) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Ingredient not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'Ingredient type not found');
   }
   Object.assign(item, updateBody);
   await item.save();
@@ -28,7 +28,7 @@ const updateById = async (id, updateBody) => {
 const deleteById = async (id) => {
   const item = await getById(id);
   if (!item) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Ingredient not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'Ingredient type not found');
   }
   await item.remove();
   return item;

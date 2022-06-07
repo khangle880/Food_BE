@@ -13,7 +13,7 @@ const uploadVideos = async (req, res) => {
     }
 
     return res.status(200).send({
-      message: 'Videos have been uploaded.',
+      urls: req.files.map((e) => `/v1/${bucketName}/${e.id}`),
     });
   } catch (error) {
     if (error.code === 'LIMIT_UNEXPECTED_FILE') {

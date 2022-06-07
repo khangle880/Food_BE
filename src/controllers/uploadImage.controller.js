@@ -13,12 +13,12 @@ const uploadImages = async (req, res) => {
     }
 
     return res.status(200).send({
-      message: 'Images have been uploaded.',
+      urls: req.files.map((e) => `/v1/${bucketName}/${e.id}`),
     });
   } catch (error) {
     if (error.code === 'LIMIT_UNEXPECTED_FILE') {
       return res.status(400).send({
-        message: 'Too many files to upload.',
+        message: req.files.map((e) => e.id),
       });
     }
     return res.status(500).send({

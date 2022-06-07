@@ -56,6 +56,7 @@ const lookup = [
       },
     },
   },
+  { $sort: { createdAt: -1 } },
 ];
 const create = async (creatorId, body) => {
   return Product.create({ creatorId, ...body });

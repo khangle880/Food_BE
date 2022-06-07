@@ -7,7 +7,8 @@ const cookStep = Joi.object().keys({
 });
 
 const ingredient = Joi.object().keys({
-  ingredientId: Joi.string().required().custom(objectId),
+  name: Joi.string().required(),
+  typeId: Joi.string().required().custom(objectId),
   unitId: Joi.string().required().custom(objectId),
   quantity: Joi.number().required(),
 });
@@ -23,6 +24,7 @@ const create = {
       totalTime: Joi.number().required(),
       level: Joi.string().required().valid('EAZY', 'MEDIUM', 'HARD'),
       videoUrl: Joi.string(),
+      videoThumbnail: Joi.string(),
       ingredients: Joi.array().items(ingredient).required(),
       specialGoals: Joi.array().items(Joi.string().custom(objectId)),
       menuTypes: Joi.array().items(Joi.string().custom(objectId)),
@@ -38,7 +40,6 @@ const getItems = {
     name: Joi.string(),
     servings: Joi.number(),
     level: Joi.string().valid('EAZY', 'MEDIUM', 'HARD'),
-    ingredientIds: Joi.array().items(Joi.string().custom(objectId)),
     specialGoals: Joi.array().items(Joi.string().custom(objectId)),
     menuTypes: Joi.array().items(Joi.string().custom(objectId)),
     cuisineId: Joi.string().custom(objectId),
@@ -113,6 +114,7 @@ const updateById = {
       totalTime: Joi.number(),
       level: Joi.string().valid('EAZY', 'MEDIUM', 'HARD'),
       videoUrl: Joi.string(),
+      videoThumbnail: Joi.string(),
       ingredients: Joi.array().items(ingredient),
       specialGoals: Joi.array().items(Joi.string().custom(objectId)),
       menuTypes: Joi.array().items(Joi.string().custom(objectId)),

@@ -13,6 +13,7 @@ router
   .delete(auth(), controller.deleteMe);
 
 router.route('/liked-recipes').get(auth(), controller.getLikedRecipes);
+router.route('/recipes').get(auth(), controller.getRecipes);
 router.route('/change-password').put(auth(), validate(validation.changePassword), controller.changePassword);
 
 module.exports = router;

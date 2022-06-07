@@ -45,7 +45,14 @@ const unFollow = catchAsync(async (req, res) => {
 });
 
 const getLikedRecipes = catchAsync(async (req, res) => {
-  const items = await userService.getLikedRecipes(req.params.id);
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await userService.getLikedRecipes(req.params.id, options);
+  res.send(items);
+});
+
+const getRecipes = catchAsync(async (req, res) => {
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await userService.getRecipes(req.params.id, options);
   res.send(items);
 });
 
@@ -58,4 +65,5 @@ module.exports = {
   follow,
   unFollow,
   getLikedRecipes,
+  getRecipes,
 };

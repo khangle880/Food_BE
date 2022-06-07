@@ -3,35 +3,75 @@ const mongoose = require('mongoose');
 const { Post, PostReaction } = require('../models');
 const ApiError = require('../utils/ApiError');
 
-const lookup = [
-  {
-    $lookup: {
-      from: 'users',
-      localField: 'creatorId',
-      foreignField: '_id',
-      as: 'creator',
+const lookup = (userId) => {
+  const userIdObj = mongoose.Types.ObjectId(userId);
+  return [
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'creatorId',
+        foreignField: '_id',
+        as: 'creator',
+      },
     },
-  },
-  { $unwind: { path: '$creator', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'creator.id': '$creator._id',
-      id: '$_id',
+    { $unwind: { path: '$creator', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        'creator.id': '$creator._id',
+        'statusWithMe.reaction.id': '$statusWithMe.reaction._id',
+        id: '$_id',
+      },
     },
-  },
-  {
-    $project: {
-      'creator._id': 0,
-      'creator.__v': 0,
-      'creator.password': 0,
-      'creator.createdAt': 0,
-      'creator.updatedAt': 0,
-      creatorId: 0,
-      _id: 0,
-      __v: 0,
+    {
+      $lookup: {
+        from: 'postreactions',
+        let: { postId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: [userIdObj, '$userId'] }, { $eq: ['$postId', '$$postId'] }],
+              },
+            },
+          },
+        ],
+        as: 'reaction',
+      },
     },
-  },
-];
+    {
+      $addFields: {
+        'statusWithMe.reaction': { $arrayElemAt: ['$reaction', 0] },
+      },
+    },
+
+    {
+      $project: {
+        'creator._id': 0,
+        'creator.__v': 0,
+        'creator.password': 0,
+        'creator.createdAt': 0,
+        'creator.updatedAt': 0,
+        reaction: 0,
+        'statusWithMe.reaction._id': 0,
+        'statusWithMe.reaction.__v': 0,
+        creatorId: 0,
+        _id: 0,
+        __v: 0,
+      },
+    },
+    {
+      $replaceWith: {
+        $arrayToObject: {
+          $filter: {
+            input: { $objectToArray: '$$ROOT' },
+            cond: { $not: { $in: ['$$this.v', [null, '', {}, [{}]]] } },
+          },
+        },
+      },
+    },
+    { $sort: { createdAt: -1 } },
+  ];
+};
 
 const lookupPostReactions = [
   {
@@ -65,14 +105,21 @@ const lookupPostReactions = [
       type: 1,
     },
   },
+  {
+    $replaceWith: {
+      $arrayToObject: {
+        $filter: {
+          input: { $objectToArray: '$$ROOT' },
+          cond: { $not: { $in: ['$$this.v', [null, '', {}, [{}]]] } },
+        },
+      },
+    },
+  },
+  { $sort: { createdAt: -1 } },
 ];
 
-const create = async (creatorId, body) => {
-  return Post.create({ creatorId, ...body });
-};
-
-const query = async (filter, options) => {
-  const recipes = Post.aggregate([...lookup, { $match: filter }]);
+const query = async (userId, filter, options) => {
+  const recipes = Post.aggregate([{ $match: filter }, ...lookup(userId)]);
   const items = await Post.aggregatePaginate(recipes, options).then((result) => {
     const value = {};
     value.results = result.docs;
@@ -85,23 +132,27 @@ const query = async (filter, options) => {
   return items;
 };
 
-const getById = async (id) => {
-  const items = await Post.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookup]).limit(1);
+const getById = async (userId, id) => {
+  const items = await Post.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookup(userId)]).limit(1);
   return items.at(0);
 };
 
-const updateById = async (id, updateBody) => {
-  const item = await getById(id);
+const create = async (creatorId, body) => {
+  const post = await Post.create({ creatorId, ...body });
+  return getById(creatorId, post.id);
+};
+const updateById = async (userId, id, updateBody) => {
+  let item = await getById(userId, id);
   if (!item) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Post not found');
   }
-  Object.assign(item, updateBody);
   await Post.updateOne({ _id: item.id }, { $set: updateBody });
+  item = await getById(userId, id);
   return getById(id);
 };
 
 const deleteById = async (id) => {
-  const item = await getById(id);
+  const item = await Post.findById(id);
   if (!item) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Post not found');
   }
@@ -110,7 +161,7 @@ const deleteById = async (id) => {
 };
 
 const react = async (userId, postId, type) => {
-  const post = await getById(postId);
+  const post = await getById(userId, postId);
   if (!post) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Post not found');
   }
@@ -125,7 +176,7 @@ const react = async (userId, postId, type) => {
 };
 
 const deleteReaction = async (userId, postId) => {
-  const post = await getById(postId);
+  const post = await getById(userId, postId);
   if (!post) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Post not found');
   }
@@ -150,7 +201,7 @@ const getPostReactions = async (id, options) => {
   return items;
 };
 
-const search = async (text, options) => {
+const search = async (userId, text, options) => {
   const posts = Post.aggregate([
     {
       $match: {
@@ -167,7 +218,7 @@ const search = async (text, options) => {
         _id: 0,
       },
     },
-    ...lookup,
+    ...lookup(userId),
   ]);
   const items = await Post.aggregatePaginate(posts, options).then((result) => {
     const value = {};

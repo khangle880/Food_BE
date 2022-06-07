@@ -21,5 +21,6 @@ router.route('/:id/follow').post(auth(), validate(validation.follow), controller
 router.route('/:id/unfollow').delete(auth(), validate(validation.unFollow), controller.unFollow);
 
 router.route('/:id/liked-recipes').get(auth(), validate(validation.getLikedRecipes), controller.getLikedRecipes);
+router.route('/:id/recipes').get(auth(), validate(validation.getRecipes), controller.getRecipes);
 
 module.exports = router;

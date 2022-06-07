@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+const pick = require('../utils/pick');
 const catchAsync = require('../utils/catchAsync');
 const { userService } = require('../services');
 
@@ -22,7 +23,14 @@ const changePassword = catchAsync(async (req, res) => {
 });
 
 const getLikedRecipes = catchAsync(async (req, res) => {
-  const items = await userService.getLikedRecipes(req.user.id);
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await userService.getLikedRecipes(req.user.id, options);
+  res.send(items);
+});
+
+const getRecipes = catchAsync(async (req, res) => {
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await userService.getRecipes(req.user.id, options);
   res.send(items);
 });
 
@@ -32,4 +40,5 @@ module.exports = {
   deleteMe,
   changePassword,
   getLikedRecipes,
+  getRecipes,
 };
