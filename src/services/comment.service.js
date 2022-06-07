@@ -74,8 +74,15 @@ const create = async (creatorId, body) => {
 };
 
 const query = async (filter, options) => {
-  const recipes = Comment.aggregate([...lookup, { $match: filter }]);
-  const items = await Comment.aggregatePaginate(recipes, options).then((result) => {
+  const newFilter = filter;
+  Object.keys(filter).forEach(function (key) {
+    if (filter[key].match(/^[0-9a-fA-F]{24}$/)) {
+      newFilter[key] = mongoose.Types.ObjectId(filter[key]);
+    }
+  });
+
+  const aggregate = Comment.aggregate([{ $match: newFilter }, ...lookup]);
+  const items = await Comment.aggregatePaginate(aggregate, options).then((result) => {
     const value = {};
     value.results = result.docs;
     value.page = result.page;
