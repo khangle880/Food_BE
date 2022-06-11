@@ -509,19 +509,33 @@ const unvote = async (userId, recipeId) => {
   return item;
 };
 
-const search = async (userId, text, options) => {
-  const recipes = Recipe.aggregate([
-    {
-      $match: {
-        $text: {
-          $search: text,
+const search = async (userId, filter, options) => {
+  const newFilter = filter;
+  Object.keys(filter).forEach(function (key) {
+    if (filter[key].match(/^[0-9a-fA-F]{24}$/)) {
+      newFilter[key] = mongoose.Types.ObjectId(filter[key]);
+    }
+  });
+  const pipe = [];
+  if (filter.q !== undefined) {
+    pipe.push(
+      ...[
+        {
+          $match: {
+            $text: {
+              $search: filter.q,
+            },
+          },
         },
-      },
-    },
-    { $addFields: { score: { $meta: 'textScore' } } },
-    { $match: { score: { $gt: 0.5 } } },
-    ...lookup(userId),
-  ]);
+        { $addFields: { score: { $meta: 'textScore' } } },
+        { $match: { score: { $gt: 0.5 } } },
+      ]
+    );
+  }
+  delete newFilter.q;
+  pipe.push(...[{ $match: newFilter }, ...lookup(userId)]);
+
+  const recipes = Recipe.aggregate(pipe);
   const items = await Recipe.aggregatePaginate(recipes, options).then((result) => {
     const value = {};
     value.results = result.docs;
@@ -575,6 +589,19 @@ const getRatingUsers = async (id, options) => {
   });
   return items;
 };
+const getRecipes = async (userId, options) => {
+  const aggregate = Recipe.aggregate([{ $match: { creatorId: mongoose.Types.ObjectId(userId) } }, ...lookup(userId)]);
+  const items = await Recipe.aggregatePaginate(aggregate, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
+};
 
 module.exports = {
   create,
@@ -593,4 +620,5 @@ module.exports = {
   getCookedUsers,
   getRatingUsers,
   lookup,
+  getRecipes,
 };

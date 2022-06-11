@@ -66,9 +66,9 @@ const recipeSchema = mongoose.Schema(
     },
     videoUrl: { type: String, transform: (v) => (v == null ? '' : v) },
     videoThumbnail: { type: String, transform: (v) => (v == null ? '' : v) },
-    cuisineId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cuisine', required: true },
-    dishTypeId: { type: mongoose.Schema.Types.ObjectId, ref: 'DishType', required: true },
-    cookMethodId: { type: mongoose.Schema.Types.ObjectId, ref: 'CookMethod', required: true },
+    cuisineId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cuisine' },
+    dishTypeId: { type: mongoose.Schema.Types.ObjectId, ref: 'DishType' },
+    cookMethodId: { type: mongoose.Schema.Types.ObjectId, ref: 'CookMethod' },
   },
   { timestamps: true }
 );

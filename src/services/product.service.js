@@ -58,9 +58,6 @@ const lookup = [
   },
   { $sort: { createdAt: -1 } },
 ];
-const create = async (creatorId, body) => {
-  return Product.create({ creatorId, ...body });
-};
 
 const query = async (filter, options) => {
   const products = Product.aggregate([...lookup, { $match: filter }]);
@@ -79,6 +76,11 @@ const query = async (filter, options) => {
 const getById = async (id) => {
   const items = await Product.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookup]).limit(1);
   return items.at(0);
+};
+
+const create = async (creatorId, body) => {
+  const product = await Product.create({ creatorId, ...body });
+  return getById(product.id);
 };
 
 const updateById = async (id, updateBody) => {
@@ -100,26 +102,58 @@ const deleteById = async (id) => {
   return item;
 };
 
-const search = async (text, options) => {
-  const products = Product.aggregate([
-    {
-      $match: {
-        $text: {
-          $search: text,
+const search = async (filter, options) => {
+  const newFilter = filter;
+  Object.keys(filter).forEach(function (key) {
+    if (filter[key].match(/^[0-9a-fA-F]{24}$/)) {
+      newFilter[key] = mongoose.Types.ObjectId(filter[key]);
+    }
+  });
+  const pipe = [];
+  if (filter.q !== undefined) {
+    pipe.push(
+      ...[
+        {
+          $match: {
+            $text: {
+              $search: filter.q,
+            },
+          },
+        },
+        { $addFields: { score: { $meta: 'textScore' }, id: '$_id' } },
+        { $match: { score: { $gt: 0.5 } } },
+      ]
+    );
+  }
+  delete newFilter.q;
+  pipe.push(
+    ...[
+      { $match: newFilter },
+
+      {
+        $project: {
+          __v: 0,
+          _id: 0,
         },
       },
-    },
-    { $addFields: { score: { $meta: 'textScore' }, id: '$_id' } },
-    { $match: { score: { $gt: 0.5 } } },
-    {
-      $project: {
-        __v: 0,
-        _id: 0,
-      },
-    },
-    ...lookup,
-  ]);
+      ...lookup,
+    ]
+  );
+  const products = Product.aggregate(pipe);
   const items = await Product.aggregatePaginate(products, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
+};
+const getProducts = async (userId, options) => {
+  const aggregate = Product.aggregate([{ $match: { creatorId: mongoose.Types.ObjectId(userId) } }, ...lookup]);
+  const items = await Product.aggregatePaginate(aggregate, options).then((result) => {
     const value = {};
     value.results = result.docs;
     value.page = result.page;
@@ -138,4 +172,5 @@ module.exports = {
   deleteById,
   query,
   search,
+  getProducts,
 };

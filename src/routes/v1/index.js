@@ -21,6 +21,7 @@ const uploadImageRoute = require('./uploadImage.route');
 const messageRoute = require('./message.route');
 const docsRoute = require('./docs.route');
 const config = require('../../config/config');
+const spamRoute = require('./spam.route');
 
 const router = express.Router();
 
@@ -101,10 +102,13 @@ const defaultRoutes = [
     path: '/photos',
     route: uploadImageRoute,
   },
-
   {
     path: '/message',
     route: messageRoute,
+  },
+  {
+    path: '/spam',
+    route: spamRoute,
   },
 ];
 

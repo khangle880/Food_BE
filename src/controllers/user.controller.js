@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { userService } = require('../services');
+const { userService, productService, postService, recipeService } = require('../services');
 
 const create = catchAsync(async (req, res) => {
   const user = await userService.create(req.body);
@@ -52,7 +52,19 @@ const getLikedRecipes = catchAsync(async (req, res) => {
 
 const getRecipes = catchAsync(async (req, res) => {
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const items = await userService.getRecipes(req.params.id, options);
+  const items = await recipeService.getRecipes(req.params.id, options);
+  res.send(items);
+});
+
+const getProducts = catchAsync(async (req, res) => {
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await productService.getProducts(req.params.id, options);
+  res.send(items);
+});
+
+const getPosts = catchAsync(async (req, res) => {
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await postService.getPosts(req.params.id, options);
   res.send(items);
 });
 
@@ -66,4 +78,6 @@ module.exports = {
   unFollow,
   getLikedRecipes,
   getRecipes,
+  getProducts,
+  getPosts,
 };

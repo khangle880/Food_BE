@@ -201,26 +201,57 @@ const getPostReactions = async (id, options) => {
   return items;
 };
 
-const search = async (userId, text, options) => {
-  const posts = Post.aggregate([
-    {
-      $match: {
-        $text: {
-          $search: text,
+const search = async (userId, filter, options) => {
+  const newFilter = filter;
+  Object.keys(filter).forEach(function (key) {
+    if (filter[key].match(/^[0-9a-fA-F]{24}$/)) {
+      newFilter[key] = mongoose.Types.ObjectId(filter[key]);
+    }
+  });
+  const pipe = [];
+  if (filter.q !== undefined) {
+    pipe.push(
+      ...[
+        {
+          $match: {
+            $text: {
+              $search: filter.q,
+            },
+          },
+        },
+        { $addFields: { score: { $meta: 'textScore' }, id: '$_id' } },
+        { $match: { score: { $gt: 0.5 } } },
+      ]
+    );
+  }
+  delete newFilter.q;
+  pipe.push(
+    ...[
+      { $match: newFilter },
+      {
+        $project: {
+          __v: 0,
+          _id: 0,
         },
       },
-    },
-    { $addFields: { score: { $meta: 'textScore' }, id: '$_id' } },
-    { $match: { score: { $gt: 0.5 } } },
-    {
-      $project: {
-        __v: 0,
-        _id: 0,
-      },
-    },
-    ...lookup(userId),
-  ]);
+      ...lookup(userId),
+    ]
+  );
+  const posts = Post.aggregate(pipe);
   const items = await Post.aggregatePaginate(posts, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
+};
+const getPosts = async (userId, options) => {
+  const aggregate = Post.aggregate([{ $match: { creatorId: mongoose.Types.ObjectId(userId) } }, ...lookup(userId)]);
+  const items = await Post.aggregatePaginate(aggregate, options).then((result) => {
     const value = {};
     value.results = result.docs;
     value.page = result.page;
@@ -242,4 +273,5 @@ module.exports = {
   deleteReaction,
   getPostReactions,
   search,
+  getPosts,
 };

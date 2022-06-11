@@ -14,6 +14,8 @@ router
 
 router.route('/liked-recipes').get(auth(), controller.getLikedRecipes);
 router.route('/recipes').get(auth(), controller.getRecipes);
+router.route('/products').get(auth(), controller.getProducts);
+router.route('/posts').get(auth(), controller.getPosts);
 router.route('/change-password').put(auth(), validate(validation.changePassword), controller.changePassword);
 
 module.exports = router;

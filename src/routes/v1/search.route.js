@@ -6,6 +6,6 @@ const controller = require('../../controllers/search.controller');
 
 const router = express.Router();
 
-router.route('/').get(auth(), validate(validation.search), controller.search);
+router.route('/').get(auth(), controller.search);
 
 module.exports = router;

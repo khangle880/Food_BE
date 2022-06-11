@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
 const recipeService = require('./recipe.service');
-const { User, Recipe, RecipeLike } = require('../models');
+const { User, RecipeLike } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 const lookupLikedRecipes = [
@@ -15,6 +15,60 @@ const lookupLikedRecipes = [
   },
   { $unwind: { path: '$recipe', preserveNullAndEmptyArrays: true } },
   { $replaceRoot: { newRoot: '$recipe' } },
+];
+const lookupProfile = [
+  {
+    $lookup: {
+      from: 'recipes',
+      localField: '_id',
+      foreignField: 'creatorId',
+      as: 'recipes',
+    },
+  },
+  {
+    $lookup: {
+      from: 'posts',
+      localField: '_id',
+      foreignField: 'creatorId',
+      as: 'posts',
+    },
+  },
+  {
+    $lookup: {
+      from: 'products',
+      localField: '_id',
+      foreignField: 'creatorId',
+      as: 'products',
+    },
+  },
+  {
+    $addFields: {
+      totalRecipes: { $size: '$recipes' },
+      totalPosts: { $size: '$posts' },
+      totalProducts: { $size: '$products' },
+      id: '$_id',
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      __v: 0,
+      recipes: 0,
+      posts: 0,
+      products: 0,
+      password: 0,
+    },
+  },
+  {
+    $replaceWith: {
+      $arrayToObject: {
+        $filter: {
+          input: { $objectToArray: '$$ROOT' },
+          cond: { $not: { $in: ['$$this.v', [null, '', {}, [{}]]] } },
+        },
+      },
+    },
+  },
 ];
 
 const create = async (body) => {
@@ -31,6 +85,10 @@ const query = async (filter, options) => {
 
 const getById = async (id) => {
   return User.findById(id);
+};
+const getProfile = async (userId) => {
+  const items = await User.aggregate([{ $match: { _id: mongoose.Types.ObjectId(userId) } }, ...lookupProfile]).limit(1);
+  return items.at(0);
 };
 
 const getByEmail = async (email) => {
@@ -102,25 +160,36 @@ const changePassword = async (user, body) => {
   return user;
 };
 
-const search = async (text, options) => {
-  const users = User.aggregate([
-    {
-      $match: {
-        $text: {
-          $search: text,
+const search = async (filter, options) => {
+  const pipe = [];
+  if (filter.q !== undefined) {
+    pipe.push(
+      ...[
+        {
+          $match: {
+            $text: {
+              $search: filter.q,
+            },
+          },
+        },
+        { $addFields: { score: { $meta: 'textScore' } } },
+        { $match: { score: { $gt: 0.5 } } },
+      ]
+    );
+  }
+  pipe.push(
+    ...[
+      {
+        $project: {
+          __v: 0,
+          _id: 0,
+          password: 0,
         },
       },
-    },
-    { $addFields: { score: { $meta: 'textScore' }, id: '$_id' } },
-    { $match: { score: { $gt: 0.5 } } },
-    {
-      $project: {
-        __v: 0,
-        _id: 0,
-        password: 0,
-      },
-    },
-  ]);
+    ]
+  );
+
+  const users = User.aggregate(pipe);
   const items = await User.aggregatePaginate(users, options).then((result) => {
     const value = {};
     value.results = result.docs;
@@ -151,23 +220,6 @@ const getLikedRecipes = async (userId, options) => {
   return items;
 };
 
-const getRecipes = async (userId, options) => {
-  const aggregate = Recipe.aggregate([
-    { $match: { creatorId: mongoose.Types.ObjectId(userId) } },
-    ...recipeService.lookup(userId),
-  ]);
-  const items = await Recipe.aggregatePaginate(aggregate, options).then((result) => {
-    const value = {};
-    value.results = result.docs;
-    value.page = result.page;
-    value.limit = result.limit;
-    value.totalPages = result.totalPages;
-    value.totalResults = result.totalDocs;
-    return value;
-  });
-  return items;
-};
-
 module.exports = {
   create,
   getById,
@@ -180,5 +232,5 @@ module.exports = {
   changePassword,
   search,
   getLikedRecipes,
-  getRecipes,
+  getProfile,
 };

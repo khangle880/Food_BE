@@ -28,9 +28,9 @@ const create = {
       ingredients: Joi.array().items(ingredient).required(),
       specialGoals: Joi.array().items(Joi.string().custom(objectId)),
       menuTypes: Joi.array().items(Joi.string().custom(objectId)),
-      cuisineId: Joi.string().custom(objectId).required(),
-      dishTypeId: Joi.string().custom(objectId).required(),
-      cookMethodId: Joi.string().custom(objectId).required(),
+      cuisineId: Joi.string().custom(objectId),
+      dishTypeId: Joi.string().custom(objectId),
+      cookMethodId: Joi.string().custom(objectId),
     })
     .or('photoUrls', 'videoUrl'),
 };

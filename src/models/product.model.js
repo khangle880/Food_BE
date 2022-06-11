@@ -19,9 +19,11 @@ const productSchema = mongoose.Schema(
       required: true,
     },
     videoUrl: { type: String, transform: (v) => (v == null ? '' : v) },
+    videoThumbnail: { type: String, transform: (v) => (v == null ? '' : v) },
     description: { type: String, required: true },
+    name: { type: String, required: true },
     price: { type: Number, transform: (v) => (v == null ? '' : v) },
-    unitId: { type: mongoose.Schema.Types.ObjectId, ref: 'Unit', transform: (v) => (v == null ? '' : v) },
+    currencyUnit: { type: String, transform: (v) => (v == null ? '' : v) },
     saleLocations: { type: [{ type: String }], default: [] },
     deletedAt: { type: Date, transform: (v) => (v == null ? '' : v) },
   },
@@ -34,6 +36,7 @@ productSchema.plugin(paginate);
 productSchema.plugin(aggregatePaginate);
 
 productSchema.index({
+  name: 'text',
   description: 'text',
   price: 'text',
   saleLocations: 'text',
