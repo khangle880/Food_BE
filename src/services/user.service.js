@@ -86,6 +86,7 @@ const query = async (filter, options) => {
 const getById = async (id) => {
   return User.findById(id);
 };
+
 const getProfile = async (userId) => {
   const items = await User.aggregate([{ $match: { _id: mongoose.Types.ObjectId(userId) } }, ...lookupProfile]).limit(1);
   return items.at(0);
@@ -96,15 +97,19 @@ const getByEmail = async (email) => {
 };
 
 const updateById = async (userId, updateBody) => {
-  let user = await getById(userId);
+  const user = await getById(userId);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
-  user = await getById(userId);
-  return user;
+  Object.assign(user, updateBody);
+  await user.save();
+
+  const newUser = getProfile(userId);
+
+  return newUser;
 };
 
 const deleteById = async (id) => {
