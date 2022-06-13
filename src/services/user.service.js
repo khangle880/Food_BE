@@ -179,6 +179,7 @@ const search = async (filter, options) => {
   }
   pipe.push(
     ...[
+      { $addFields: { id: '$_id' } },
       {
         $project: {
           __v: 0,

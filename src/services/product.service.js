@@ -120,25 +120,13 @@ const search = async (filter, options) => {
             },
           },
         },
-        { $addFields: { score: { $meta: 'textScore' }, id: '$_id' } },
+        { $addFields: { score: { $meta: 'textScore' } } },
         { $match: { score: { $gt: 0.5 } } },
       ]
     );
   }
   delete newFilter.q;
-  pipe.push(
-    ...[
-      { $match: newFilter },
-
-      {
-        $project: {
-          __v: 0,
-          _id: 0,
-        },
-      },
-      ...lookup,
-    ]
-  );
+  pipe.push(...[{ $match: newFilter }, ...lookup]);
   const products = Product.aggregate(pipe);
   const items = await Product.aggregatePaginate(products, options).then((result) => {
     const value = {};

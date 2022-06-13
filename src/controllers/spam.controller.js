@@ -7,26 +7,7 @@ const { recipeService } = require('../services');
 const { Unit } = require('../models');
 
 const spamRecipe = catchAsync(async (req, res) => {
-  const ids = [
-    '30080',
-    '54660',
-    '54656',
-    '20185',
-    '4014',
-    '24273',
-    '50730',
-    '46665',
-    '14611',
-    '4889',
-    '31966',
-    '20662',
-    '24673',
-    '14657',
-    '54011',
-    '30784',
-    '26083',
-    '52666',
-  ];
+  const ids = ['51996', '15327', '41436', '37837', '3030'];
   await Promise.all(
     ids.map(async (id) => {
       const interceptorConfig = interceptor(
