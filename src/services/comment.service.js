@@ -100,12 +100,13 @@ const getById = async (id) => {
 };
 
 const updateById = async (id, updateBody) => {
-  const item = await getById(id);
+  let item = await getById(id);
   if (!item) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Comment not found');
   }
   Object.assign(item, updateBody);
   await Comment.updateOne({ _id: item.id }, { $set: updateBody });
+  item = await getById(id);
   return getById(id);
 };
 

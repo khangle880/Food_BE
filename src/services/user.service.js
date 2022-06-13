@@ -96,15 +96,14 @@ const getByEmail = async (email) => {
 };
 
 const updateById = async (userId, updateBody) => {
-  const user = await getById(userId);
+  let user = await getById(userId);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
-  Object.assign(user, updateBody);
-  await user.save();
+  user = await getById(userId);
   return user;
 };
 
