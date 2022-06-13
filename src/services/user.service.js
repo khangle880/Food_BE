@@ -84,10 +84,7 @@ const query = async (filter, options) => {
 };
 
 const getById = async (id) => {
-  return User.findById(id);
-};
-const getProfile = async (userId) => {
-  const items = await User.aggregate([{ $match: { _id: mongoose.Types.ObjectId(userId) } }, ...lookupProfile]).limit(1);
+  const items = await User.aggregate([{ $match: { _id: mongoose.Types.ObjectId(id) } }, ...lookupProfile]).limit(1);
   return items.at(0);
 };
 
@@ -232,5 +229,4 @@ module.exports = {
   changePassword,
   search,
   getLikedRecipes,
-  getProfile,
 };

@@ -4,7 +4,7 @@ const catchAsync = require('../utils/catchAsync');
 const { userService, productService, postService, recipeService } = require('../services');
 
 const getMe = catchAsync(async (req, res) => {
-  const profile = await userService.getProfile(req.user.id);
+  const profile = await userService.getById(req.user.id);
   res.send(profile);
 });
 
