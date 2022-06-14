@@ -13,7 +13,7 @@ const uploadImages = async (req, res) => {
     }
 
     return res.status(200).send({
-      urls: req.files.map((e) => `/v1/${bucketName}/${e.id}.${e.contentType.split('/')[1]}`),
+      urls: req.files.map((e) => `/v1/${bucketName}/${e.id}`),
     });
   } catch (error) {
     if (error.code === 'LIMIT_UNEXPECTED_FILE') {
@@ -40,7 +40,7 @@ const getListImages = async (req, res) => {
     await cursor.forEach((doc) => {
       fileInfos.push({
         name: doc.filename,
-        url: `/v1/${bucketName}/${doc._id}.${doc.contentType.split('/')[1]}`,
+        url: `/v1/${bucketName}/${doc._id}`,
       });
     });
     return res.status(200).send(fileInfos);

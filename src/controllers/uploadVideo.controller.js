@@ -13,7 +13,7 @@ const uploadVideos = async (req, res) => {
     }
 
     return res.status(200).send({
-      urls: req.files.map((e) => `/v1/${bucketName}/${e.id}.${e.contentType.split('/')[1]}`),
+      urls: req.files.map((e) => `/v1/${bucketName}/${e.id}`),
     });
   } catch (error) {
     if (error.code === 'LIMIT_UNEXPECTED_FILE') {
@@ -40,7 +40,7 @@ const getListVideos = async (req, res) => {
     await cursor.forEach((doc) => {
       fileInfos.push({
         name: doc.filename,
-        url: `/v1/${bucketName}/${doc._id}.${doc.contentType.split('/')[1]}`,
+        url: `/v1/${bucketName}/${doc._id}`,
       });
     });
     return res.status(200).send(fileInfos);
@@ -57,7 +57,7 @@ const downloadVideo = async (req, res) => {
     const bucket = new GridFSBucket(database, {
       bucketName,
     });
-    const downloadStream = bucket.openDownloadStream(mongoose.Types.ObjectId(req.params.id.split('.')[0]));
+    const downloadStream = bucket.openDownloadStream(mongoose.Types.ObjectId(req.params.id));
     downloadStream.on('data', function (data) {
       return res.status(200).write(data);
     });
