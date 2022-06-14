@@ -22,5 +22,7 @@ router.route('/:id/unfollow').delete(auth(), validate(validation.unFollow), cont
 
 router.route('/:id/liked-recipes').get(auth(), validate(validation.getLikedRecipes), controller.getLikedRecipes);
 router.route('/:id/recipes').get(auth(), validate(validation.getRecipes), controller.getRecipes);
+router.route('/:id/following').get(auth(), controller.getFollowingUsers);
+router.route('/:id/follower').get(auth(), controller.getFollowerUsers);
 
 module.exports = router;

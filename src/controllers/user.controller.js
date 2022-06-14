@@ -35,11 +35,17 @@ const deleteById = catchAsync(async (req, res) => {
 });
 
 const follow = catchAsync(async (req, res) => {
+  if (req.user.id === req.params.id) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "You can't follow yourseft");
+  }
   const user = await userService.follow(req.user.id, req.params.id);
   res.send(user);
 });
 
 const unFollow = catchAsync(async (req, res) => {
+  if (req.user.id === req.params.id) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "You can't unfollow yourseft");
+  }
   const user = await userService.unFollow(req.user.id, req.params.id);
   res.send(user);
 });
@@ -68,6 +74,18 @@ const getPosts = catchAsync(async (req, res) => {
   res.send(items);
 });
 
+const getFollowingUsers = catchAsync(async (req, res) => {
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await userService.getFollowingUsers(req.params.id, options);
+  res.send(items);
+});
+
+const getFollowerUsers = catchAsync(async (req, res) => {
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const items = await userService.getFollowerUsers(req.params.id, options);
+  res.send(items);
+});
+
 module.exports = {
   create,
   getItems,
@@ -80,4 +98,6 @@ module.exports = {
   getRecipes,
   getProducts,
   getPosts,
+  getFollowingUsers,
+  getFollowerUsers,
 };

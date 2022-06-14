@@ -100,6 +100,7 @@ const updateById = async (userId, updateBody) => {
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
+  await User.updateOne({ _id: user.id }, { $set: updateBody });
   user = await getById(userId);
   return user;
 };
@@ -120,7 +121,7 @@ const follow = async (userId, otherUserId) => {
   }
   let item = await User.findOne({ _id: userId, followingUsers: otherUserId });
   if (!item) {
-    item = await getById(userId);
+    item = await User.findById(userId);
     item.followingUsers.push(otherUserId);
     await item.save();
     otherUser.followerUsers.push(userId);
@@ -130,7 +131,7 @@ const follow = async (userId, otherUserId) => {
 };
 
 const unFollow = async (userId, otherUserId) => {
-  const otherUser = await getById(otherUserId);
+  const otherUser = await User.findById(otherUserId);
   if (!otherUser) {
     throw new ApiError(httpStatus.NOT_FOUND, 'This user not exist');
   }
@@ -173,18 +174,7 @@ const search = async (filter, options) => {
       ]
     );
   }
-  pipe.push(
-    ...[
-      { $addFields: { id: '$_id' } },
-      {
-        $project: {
-          __v: 0,
-          _id: 0,
-          password: 0,
-        },
-      },
-    ]
-  );
+  pipe.push(...lookupProfile);
 
   const users = User.aggregate(pipe);
   const items = await User.aggregatePaginate(users, options).then((result) => {
@@ -217,6 +207,60 @@ const getLikedRecipes = async (userId, options) => {
   return items;
 };
 
+const getFollowingUsers = async (id, options) => {
+  const aggregate = User.aggregate([
+    { $match: { _id: mongoose.Types.ObjectId(id), followingUsers: { $not: { $size: 0 } } } },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'followingUsers',
+        foreignField: '_id',
+        as: 'followingUsers',
+      },
+    },
+    { $unwind: { path: '$followingUsers', preserveNullAndEmptyArrays: true } },
+    { $replaceRoot: { newRoot: '$followingUsers' } },
+    ...lookupProfile,
+  ]);
+  const items = await User.aggregatePaginate(aggregate, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
+};
+
+const getFollowerUsers = async (id, options) => {
+  const aggregate = User.aggregate([
+    { $match: { _id: mongoose.Types.ObjectId(id), followerUsers: { $not: { $size: 0 } } } },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'followerUsers',
+        foreignField: '_id',
+        as: 'followerUsers',
+      },
+    },
+    { $unwind: { path: '$followerUsers', preserveNullAndEmptyArrays: true } },
+    { $replaceRoot: { newRoot: '$followerUsers' } },
+    ...lookupProfile,
+  ]);
+  const items = await User.aggregatePaginate(aggregate, options).then((result) => {
+    const value = {};
+    value.results = result.docs;
+    value.page = result.page;
+    value.limit = result.limit;
+    value.totalPages = result.totalPages;
+    value.totalResults = result.totalDocs;
+    return value;
+  });
+  return items;
+};
+
 module.exports = {
   create,
   getById,
@@ -229,4 +273,6 @@ module.exports = {
   changePassword,
   search,
   getLikedRecipes,
+  getFollowingUsers,
+  getFollowerUsers,
 };
