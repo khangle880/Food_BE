@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const aggregatePaginate = require('mongoose-aggregate-paginate-v2');
 const { toJSON } = require('./plugins');
 
-const recipeLikeRecipe = mongoose.Schema(
+const recipeLikeSchema = mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -18,15 +18,15 @@ const recipeLikeRecipe = mongoose.Schema(
   { timestamps: true }
 );
 
-recipeLikeRecipe.index({ userId: 1, recipeId: 1 }, { unique: true });
+recipeLikeSchema.index({ userId: 1, recipeId: 1 }, { unique: true });
 
 // add plugin that converts mongoose to json
-recipeLikeRecipe.plugin(toJSON);
-recipeLikeRecipe.plugin(aggregatePaginate);
+recipeLikeSchema.plugin(toJSON);
+recipeLikeSchema.plugin(aggregatePaginate);
 
 /**
  * @typedef RecipeLike
  */
-const RecipeLike = mongoose.model('RecipeLike', recipeLikeRecipe);
+const RecipeLike = mongoose.model('RecipeLike', recipeLikeSchema);
 
 module.exports = RecipeLike;

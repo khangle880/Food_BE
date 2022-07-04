@@ -69,7 +69,6 @@ const lookup = (userId) => {
         },
       },
     },
-    { $sort: { createdAt: -1 } },
   ];
 };
 
@@ -203,13 +202,14 @@ const getPostReactions = async (id, options) => {
 
 const search = async (userId, filter, options) => {
   const newFilter = filter;
+  const hasQuery = filter.q !== undefined;
   Object.keys(filter).forEach(function (key) {
     if (filter[key].match(/^[0-9a-fA-F]{24}$/)) {
       newFilter[key] = mongoose.Types.ObjectId(filter[key]);
     }
   });
   const pipe = [];
-  if (filter.q !== undefined) {
+  if (hasQuery) {
     pipe.push(
       ...[
         {
@@ -220,12 +220,19 @@ const search = async (userId, filter, options) => {
           },
         },
         { $addFields: { score: { $meta: 'textScore' } } },
-        { $match: { score: { $gt: 0.5 } } },
+        { $match: { score: { $gt: 1 } } },
       ]
     );
   }
   delete newFilter.q;
   pipe.push(...[{ $match: newFilter }, ...lookup(userId)]);
+
+  if (hasQuery) {
+    pipe.push({ $sort: { score: -1 } });
+  } else {
+    pipe.push({ $sort: { createdAt: -1 } });
+  }
+
   const posts = Post.aggregate(pipe);
   const items = await Post.aggregatePaginate(posts, options).then((result) => {
     const value = {};

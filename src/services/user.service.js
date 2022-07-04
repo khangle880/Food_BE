@@ -170,7 +170,8 @@ const search = async (filter, options) => {
           },
         },
         { $addFields: { score: { $meta: 'textScore' } } },
-        { $match: { score: { $gt: 0.5 } } },
+        { $match: { score: { $gt: 1 } } },
+        { $sort: { score: -1 } },
       ]
     );
   }

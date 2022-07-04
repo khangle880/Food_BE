@@ -78,6 +78,8 @@ recipeSchema.index({
   servings: 'text',
   totalTime: 'text',
   level: 'text',
+  'ingredients.name': 'text',
+  'steps.content': 'text',
 });
 
 // add plugin that converts mongoose to json

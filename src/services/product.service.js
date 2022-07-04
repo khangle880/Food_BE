@@ -56,7 +56,6 @@ const lookup = [
       },
     },
   },
-  { $sort: { createdAt: -1 } },
 ];
 
 const query = async (filter, options) => {
@@ -104,13 +103,14 @@ const deleteById = async (id) => {
 
 const search = async (filter, options) => {
   const newFilter = filter;
+  const hasQuery = filter.q !== undefined;
   Object.keys(filter).forEach(function (key) {
     if (filter[key].match(/^[0-9a-fA-F]{24}$/)) {
       newFilter[key] = mongoose.Types.ObjectId(filter[key]);
     }
   });
   const pipe = [];
-  if (filter.q !== undefined) {
+  if (hasQuery) {
     pipe.push(
       ...[
         {
@@ -121,12 +121,19 @@ const search = async (filter, options) => {
           },
         },
         { $addFields: { score: { $meta: 'textScore' } } },
-        { $match: { score: { $gt: 0.5 } } },
+        { $match: { score: { $gt: 1 } } },
       ]
     );
   }
   delete newFilter.q;
   pipe.push(...[{ $match: newFilter }, ...lookup]);
+
+  if (hasQuery) {
+    pipe.push({ $sort: { score: -1 } });
+  } else {
+    pipe.push({ $sort: { createdAt: -1 } });
+  }
+
   const products = Product.aggregate(pipe);
   const items = await Product.aggregatePaginate(products, options).then((result) => {
     const value = {};

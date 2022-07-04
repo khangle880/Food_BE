@@ -100,14 +100,6 @@ const lookup = (userId) => {
       },
     },
     {
-      $project: {
-        'menuTypes.__v': 0,
-        'menuTypes._id': 0,
-        'menuTypes.createdAt': 0,
-        'menuTypes.updatedAt': 0,
-      },
-    },
-    {
       $group: {
         _id: '$_id',
         menuTypes: {
@@ -137,6 +129,10 @@ const lookup = (userId) => {
         'cuisine.__v': 0,
         'cuisine.createdAt': 0,
         'cuisine.updatedAt': 0,
+        'menuTypes.__v': 0,
+        'menuTypes._id': 0,
+        'menuTypes.createdAt': 0,
+        'menuTypes.updatedAt': 0,
       },
     },
     {
@@ -290,7 +286,6 @@ const lookup = (userId) => {
         },
       },
     },
-    { $sort: { createdAt: -1 } },
   ];
 };
 
@@ -511,13 +506,14 @@ const unvote = async (userId, recipeId) => {
 
 const search = async (userId, filter, options) => {
   const newFilter = filter;
+  const hasQuery = filter.q !== undefined;
   Object.keys(filter).forEach(function (key) {
     if (filter[key].match(/^[0-9a-fA-F]{24}$/)) {
       newFilter[key] = mongoose.Types.ObjectId(filter[key]);
     }
   });
   const pipe = [];
-  if (filter.q !== undefined) {
+  if (hasQuery) {
     pipe.push(
       ...[
         {
@@ -528,12 +524,18 @@ const search = async (userId, filter, options) => {
           },
         },
         { $addFields: { score: { $meta: 'textScore' } } },
-        { $match: { score: { $gt: 0.5 } } },
+        { $match: { score: { $gt: 1 } } },
       ]
     );
   }
   delete newFilter.q;
   pipe.push(...[{ $match: newFilter }, ...lookup(userId)]);
+
+  if (hasQuery) {
+    pipe.push({ $sort: { score: -1 } });
+  } else {
+    pipe.push({ $sort: { createdAt: -1 } });
+  }
 
   const recipes = Recipe.aggregate(pipe);
   const items = await Recipe.aggregatePaginate(recipes, options).then((result) => {
