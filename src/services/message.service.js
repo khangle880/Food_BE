@@ -2,10 +2,12 @@ const httpStatus = require('http-status');
 const axios = require('axios');
 const ApiError = require('../utils/ApiError');
 const { interceptor, METHOD } = require('../config/interceptor');
-const config = require('../config/config');
+const AppConfig = require('../models/appConfig.model');
 
 const getMessage = async (languageSetting, message, senderId) => {
-  const interceptorConfig = interceptor(languageSetting === 'EN' ? config.rasa_en_url : config.rasa_vn_url, METHOD.POST, {
+  const appConfig = await AppConfig.findById('62c2640c1eb3cffe134510d0');
+
+  const interceptorConfig = interceptor(appConfig.ngrokUrl, METHOD.POST, {
     message,
     senderId,
   });
