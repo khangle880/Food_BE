@@ -72,15 +72,18 @@ const recipeSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
-recipeSchema.index({
-  description: 'text',
-  name: 'text',
-  servings: 'text',
-  totalTime: 'text',
-  level: 'text',
-  'ingredients.name': 'text',
-  'steps.content': 'text',
-});
+recipeSchema.index(
+  {
+    description: 'text',
+    name: 'text',
+    servings: 'text',
+    totalTime: 'text',
+    level: 'text',
+    'ingredients.name': 'text',
+    'steps.content': 'text',
+  },
+  { name: 'custom recipe index', weights: { name: 10 } }
+);
 
 // add plugin that converts mongoose to json
 recipeSchema.plugin(toJSON);

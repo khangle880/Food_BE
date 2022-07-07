@@ -524,7 +524,7 @@ const search = async (userId, filter, options) => {
           },
         },
         { $addFields: { score: { $meta: 'textScore' } } },
-        { $match: { score: { $gt: 1 } } },
+        { $match: { score: { $gt: 5 } } },
       ]
     );
   }

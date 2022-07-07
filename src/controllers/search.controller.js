@@ -4,6 +4,7 @@ const catchAsync = require('../utils/catchAsync');
 const { userService, recipeService, postService, productService } = require('../services');
 
 const search = catchAsync(async (req, res) => {
+  console.log(req.query.q);
   const result = {};
   const { type } = req.query;
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
